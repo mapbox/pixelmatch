@@ -2,9 +2,9 @@
 
 module.exports = imagematch;
 
-function imagematch(img1, img2, output, width, height, tolerance) {
+function imagematch(img1, img2, output, width, height, threshold) {
 
-    var maxDelta = 255 * 255 * 4 * (tolerance === undefined ? 0.005 : tolerance),
+    var maxDelta = 255 * 255 * 4 * (threshold === undefined ? 0.005 : threshold),
         diff = 0;
 
     for (var y = 0; y < height; y++) {
