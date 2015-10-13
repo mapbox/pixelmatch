@@ -1,0 +1,34 @@
+{
+  "name": "imagematch",
+  "version": "1.0.0",
+  "description": "A simpe, tiny and fast JavaScript image comparison tool and library.",
+  "main": "index.js",
+  "dependencies": {
+    "pngjs2": "^2.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^1.6.0",
+    "eslint-config-mourner": "^1.0.1"
+  },
+  "scripts": {
+    "test": "eslint index.js bin/imagematch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mapbox/imagematch.git"
+  },
+  "keywords": [
+    "image",
+    "comparison",
+    "diff"
+  ],
+  "eslintConfig": {
+    "extends": "mourner"
+  },
+  "author": "Vladimir Agafonkin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mapbox/imagematch/issues"
+  },
+  "homepage": "https://github.com/mapbox/imagematch#readme"
+}

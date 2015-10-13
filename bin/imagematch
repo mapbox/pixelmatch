@@ -3,15 +3,11 @@
 
 var PNG = require('pngjs2').PNG,
     fs = require('fs'),
-    path = require('path');
-
-var match = require('../.');
-
-var threshold = 0.005;
+    match = require('../.');
 
 if (process.argv.length < 5) {
     console.log('Usage: imagematch image1.png image2.png output.png [threshold=0.005]');
-    process.exit();
+    return;
 }
 
 var path1 = process.argv[2],
