@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A simpe, tiny and fast JavaScript image comparison tool and library.",
   "main": "index.js",
+  "bin": {
+    "imagematch": "bin/imagematch"
+  },
   "dependencies": {
     "pngjs2": "^2.0.0"
   },
