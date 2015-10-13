@@ -1,10 +1,10 @@
 {
-  "name": "imagematch",
+  "name": "pixelmatch",
   "version": "1.0.0",
   "description": "A simpe, tiny and fast JavaScript image comparison tool and library.",
   "main": "index.js",
   "bin": {
-    "imagematch": "bin/imagematch"
+    "pixelmatch": "bin/pixelmatch"
   },
   "dependencies": {
     "pngjs2": "^2.0.0"
@@ -14,11 +14,11 @@
     "eslint-config-mourner": "^1.0.1"
   },
   "scripts": {
-    "test": "eslint index.js bin/imagematch"
+    "test": "eslint index.js bin/pixelmatch"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mapbox/imagematch.git"
+    "url": "git+https://github.com/mapbox/pixelmatch.git"
   },
   "keywords": [
     "image",
@@ -31,7 +31,7 @@
   "author": "Vladimir Agafonkin",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mapbox/imagematch/issues"
+    "url": "https://github.com/mapbox/pixelmatch/issues"
   },
-  "homepage": "https://github.com/mapbox/imagematch#readme"
+  "homepage": "https://github.com/mapbox/pixelmatch#readme"
 }

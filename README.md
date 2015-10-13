@@ -1,12 +1,22 @@
+### pixelmatch
+
 The smallest, simplest and fastest JavaScript image comparison library.
 
 Inspired by [Resemble.js](https://github.com/Huddle/Resemble.js)
 and [Blink-diff](https://github.com/yahoo/blink-diff),
-but is much simpler, faster,
-and works on raw image data arrays so that it can be used in any environment (Node or browsers).
+but is much simpler and works on raw image data arrays
+so that it can be used in any environment (Node or browsers).
+
+#### Install
+
+```bash
+npm install pixelmatch
+```
+
+#### Usage
 
 ```js
-imagematch(
+pixelmatch(
     img1, img2,         // image data to compare (Buffer or Uint8Array)
     output,             // output data to write the diff to (Buffer or Uint8Array)
     width, height,      // image dimensions (should be the same in all 3 images)
@@ -19,5 +29,5 @@ imagematch(
 Also comes with a binary:
 
 ```bash
-imagematch image1.png image2.png output.png 0.005 1
+pixelmatch image1.png image2.png output.png 0.005 1
 ```

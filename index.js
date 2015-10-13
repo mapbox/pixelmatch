@@ -1,8 +1,8 @@
 'use strict';
 
-module.exports = imagematch;
+module.exports = pixelmatch;
 
-function imagematch(img1, img2, output, width, height, threshold, antialiasing) {
+function pixelmatch(img1, img2, output, width, height, threshold, antialiasing) {
 
     var maxDelta = 255 * 255 * 4 * (threshold === undefined ? 0.005 : threshold),
         shift = antialiasing === undefined ? 1 : antialiasing,
