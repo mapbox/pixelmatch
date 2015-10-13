@@ -13,8 +13,8 @@ if (process.argv.length < 5) {
 var path1 = process.argv[2],
     path2 = process.argv[3],
     pathOut = process.argv[4],
-    threshold = +process.argv[5] || 0.005,
-    antialiasing = +process.argv[6] || 1;
+    threshold = +process.argv[5],
+    antialiasing = +process.argv[6];
 
 var img1 = PNG.sync.read(fs.readFileSync(path1));
 var img2 = PNG.sync.read(fs.readFileSync(path2));
