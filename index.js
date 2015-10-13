@@ -2,9 +2,10 @@
 
 module.exports = imagematch;
 
-function imagematch(img1, img2, output, width, height, threshold) {
+function imagematch(img1, img2, output, width, height, threshold, antialiasing) {
 
     var maxDelta = 255 * 255 * 4 * (threshold === undefined ? 0.005 : threshold),
+        shift = antialiasing === undefined ? 1 : antialiasing,
         diff = 0;
 
     for (var y = 0; y < height; y++) {
@@ -14,8 +15,9 @@ function imagematch(img1, img2, output, width, height, threshold) {
             var delta = colorDelta(img1, img2, pos, pos);
 
             if (delta > maxDelta) {
-                if (antialiased(img1, img2, x, y, width, height, maxDelta) &&
-                    antialiased(img2, img1, x, y, width, height, maxDelta)) {
+                if (shift &&
+                    antialiased(img1, img2, x, y, width, height, maxDelta, shift) &&
+                    antialiased(img2, img1, x, y, width, height, maxDelta, shift)) {
 
                     drawIgnorePixel(output, pos);
 
@@ -33,9 +35,8 @@ function imagematch(img1, img2, output, width, height, threshold) {
     return diff;
 }
 
-function antialiased(img1, img2, x1, y1, width, height, maxDelta) {
-    var d = 1,
-        x0 = Math.max(x1 - d, 0),
+function antialiased(img1, img2, x1, y1, width, height, maxDelta, d) {
+    var x0 = Math.max(x1 - d, 0),
         y0 = Math.max(y1 - d, 0),
         x2 = Math.min(x1 + d, width - 1),
         y2 = Math.min(y1 + d, height - 1),

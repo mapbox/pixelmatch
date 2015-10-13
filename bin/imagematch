@@ -6,14 +6,15 @@ var PNG = require('pngjs2').PNG,
     match = require('../.');
 
 if (process.argv.length < 5) {
-    console.log('Usage: imagematch image1.png image2.png output.png [threshold=0.005]');
+    console.log('Usage: imagematch image1.png image2.png output.png [threshold=0.005] [antialiasing=1]');
     return;
 }
 
 var path1 = process.argv[2],
     path2 = process.argv[3],
     pathOut = process.argv[4],
-    threshold = +process.argv[5] || 0.005;
+    threshold = +process.argv[5] || 0.005,
+    antialiasing = +process.argv[6] || 1;
 
 var img1 = PNG.sync.read(fs.readFileSync(path1));
 var img2 = PNG.sync.read(fs.readFileSync(path2));
@@ -21,7 +22,7 @@ var img2 = PNG.sync.read(fs.readFileSync(path2));
 var diff = new PNG({width: img1.width, height: img1.height});
 
 console.time('match');
-var diffs = match(img1.data, img2.data, diff.data, diff.width, diff.height, threshold);
+var diffs = match(img1.data, img2.data, diff.data, diff.width, diff.height, threshold, antialiasing);
 console.timeEnd('match');
 
 diff.pack().pipe(fs.createWriteStream(pathOut));
