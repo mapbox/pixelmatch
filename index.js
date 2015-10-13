@@ -15,19 +15,18 @@ function imagematch(img1, img2, output, width, height, threshold, antialiasing) 
             var delta = colorDelta(img1, img2, pos, pos);
 
             if (delta > maxDelta) {
-                if (shift &&
-                    antialiased(img1, img2, x, y, width, height, maxDelta, shift) &&
-                    antialiased(img2, img1, x, y, width, height, maxDelta, shift)) {
-
-                    drawIgnorePixel(output, pos);
+                if (shift && antialiased(img1, img2, x, y, width, height, maxDelta, shift) &&
+                             antialiased(img2, img1, x, y, width, height, maxDelta, shift)) {
+                    drawPixel(output, pos, 255, 255, 0);
 
                 } else {
+                    drawPixel(output, pos, 255, 0, 0);
                     diff++;
-                    drawDiffPixel(output, pos);
                 }
 
             } else {
-                drawBgPixel(output, img1, pos);
+                var val = 255 - 0.1 * (255 - grayPixel(img1, pos));
+                drawPixel(output, pos, val, val, val);
             }
         }
     }
@@ -66,18 +65,15 @@ function colorDelta(img1, img2, pos1, pos2) {
     return (r * r) + (g * g) + (b * b) + (a * a);
 }
 
-function drawBgPixel(output, img, pos) {
-    var brightness = 0.30 * img[pos] + 0.59 * img[pos + 1] + 0.11 * img[pos + 2];
-    output[pos] = output[pos + 1] = output[pos + 2] = 255 - (255 - brightness) * 0.1;
+function drawPixel(output, pos, r, g, b) {
+    output[pos + 0] = r;
+    output[pos + 1] = g;
+    output[pos + 2] = b;
     output[pos + 3] = 255;
 }
 
-function drawDiffPixel(output, pos) {
-    output[pos] = output[pos + 3] = 255;
-    output[pos + 1] = output[pos + 2] = 0;
-}
-
-function drawIgnorePixel(output, pos) {
-    output[pos] = output[pos + 1] = output[pos + 3] = 255;
-    output[pos + 2] = 0;
+function grayPixel(img, pos) {
+    return 0.30 * img[pos + 0] +
+           0.59 * img[pos + 1] +
+           0.11 * img[pos + 2];
 }
