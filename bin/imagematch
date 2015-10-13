@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+'use strict';
+
+var PNG = require('pngjs2').PNG,
+    fs = require('fs'),
+    path = require('path');
+
+var match = require('../.');
+
+var tolerance = 0.005;
+
+if (process.argv.length < 5) {
+    console.log('Usage: imagematch image1.png image2.png output.png [tolerance=0.005]');
+    process.exit();
+}
+
+var path1 = process.argv[2],
+    path2 = process.argv[3],
+    pathOut = process.argv[4],
+    tolerance = +process.argv[5] || 0.005;
+
+var img1 = PNG.sync.read(fs.readFileSync(path1));
+var img2 = PNG.sync.read(fs.readFileSync(path2));
+
+var diff = new PNG({width: img1.width, height: img1.height});
+
+console.time('match');
+var diffs = match(img1.data, img2.data, diff.data, diff.width, diff.height, tolerance);
+console.timeEnd('match');
+
+diff.pack().pipe(fs.createWriteStream(pathOut));
+
+console.log('different pixels: ' + diffs);
+console.log('error: ' + (Math.round(100 * 100 * diffs / (diff.width * diff.height)) / 100) + '%');
