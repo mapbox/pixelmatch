@@ -9,25 +9,23 @@ primarily designed to be used in regression tests that compare screenshots.
 Inspired by [Resemble.js](https://github.com/Huddle/Resemble.js) and
 [Blink-diff](https://github.com/yahoo/blink-diff)
 and borrows the algorithm from the latter.
-Unlike these libraries, pixelmatch is under 80 lines of code,
-has no dependencies, and works on raw image data arrays,
-so it's blazing fast and can be used in any environment (Node or browsers).
+Unlike these libraries, pixelmatch is under **80 lines of code**,
+has **no dependencies**, and works on **raw arrays** of image data,
+so it's **blazing fast** and can be used in **any environment** (Node or browsers).
 
 ```js
-var numMismatchedPixels = pixelmatch(img1.data, img2.data, diff.data, 800, 600);
+var numDiffPixels = pixelmatch(img1.data, img2.data, diff.data, 800, 600);
 ```
 
 ### API
 
 #### pixelmatch(img1, img2, output, width, height[, threshold, antialiasing])
 
-- `img1` — image data of the first image (`Buffer` or `Uint8Array`)
-- `img2` — image data of the second image
-- `output` — image data to write the diff to
-- `width` — width of the images
-- `height` — height of the images
-- `threshold` — matching threshold, `0.005` by default, ranges from `0` to `1`
-- `antialiasing` — radius of antialiasing to ignore in pixels, `1` by default
+- `img1`, `img2` — Image data of the images to compare (`Buffer` or `Uint8Array`).
+- `output` — Image data to write the diff to.
+- `width`, `height` — Width and height of the images. Note that all three images need to have the same dimensions.
+- `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.005` by default.
+- `antialiasing` — Radius of antialiasing to ignore in pixels. `1` by default.
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 
