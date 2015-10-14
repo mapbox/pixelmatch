@@ -1,5 +1,8 @@
 ## pixelmatch
 
+[![Build Status](https://travis-ci.org/mapbox/pixelmatch.svg?branch=master)](https://travis-ci.org/mapbox/pixelmatch)
+[![Coverage Status](https://coveralls.io/repos/mapbox/pixelmatch/badge.svg?branch=master&service=github)](https://coveralls.io/github/mapbox/pixelmatch?branch=master)
+
 The smallest, simplest and fastest JavaScript pixel-level image comparison library,
 primarily designed to be used in regression tests that compare screenshots.
 
@@ -50,3 +53,9 @@ To build a browser-compatible version, clone the repository locally, then run:
 npm install -g browserify
 browserify -s pixelmatch index.js > pixelmatch.js
 ```
+
+### Changelog
+
+#### 1.0.0 (Oct 14, 2015)
+
+- Initial release.
