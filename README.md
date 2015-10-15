@@ -59,8 +59,4 @@ browserify -s pixelmatch index.js > pixelmatch.js
 | ![](https://mapbox.s3.amazonaws.com/mapbox-gl-native/tests/4307.1/text-halo-blur/default/expected.png) | ![](https://mapbox.s3.amazonaws.com/mapbox-gl-native/tests/4307.1/text-halo-blur/default/actual.png) | ![1diff](https://cloud.githubusercontent.com/assets/25395/10480779/d9ad1c66-7274-11e5-8b6c-9b4987316eaa.png) |
 | ![](https://pbs.twimg.com/media/CRYXm86VAAQxo-o.png) | ![](https://pbs.twimg.com/media/CRYXm9uUYAAIGAf.png) | ![](https://pbs.twimg.com/media/CRYXnAAUwAEsuzb.png) |
 
-### Changelog
-
-#### 1.0.0 (Oct 14, 2015)
-
-- Initial release.
+### [Changelog](https://github.com/mapbox/pixelmatch/releases)
