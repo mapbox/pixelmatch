@@ -1,6 +1,6 @@
 {
   "name": "pixelmatch",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "The smallest and fastest pixel-level image comparison library.",
   "main": "index.js",
   "bin": {
