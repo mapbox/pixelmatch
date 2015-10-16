@@ -6,7 +6,7 @@ var PNG = require('pngjs2').PNG,
     path = require('path'),
     match = require('../.');
 
-diffTest('1a', '1b', '1diff', 0.001, 1, 144);
+diffTest('1a', '1b', '1diff', 0.001, 1, 141);
 
 function diffTest(imgPath1, imgPath2, diffPath, threshold, antialiasing, expectedMismatch) {
     var name = 'comparing ' + imgPath1 + ' to ' + imgPath2 +

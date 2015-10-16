@@ -4,7 +4,7 @@ module.exports = pixelmatch;
 
 function pixelmatch(img1, img2, output, width, height, threshold, antialiasing) {
 
-    var maxDelta = 255 * 255 * 4 * (threshold === undefined ? 0.005 : threshold),
+    var maxDelta = 255 * 255 * 3 * (threshold === undefined ? 0.005 : threshold),
         shift = antialiasing === undefined ? 1 : antialiasing,
         diff = 0;
 
@@ -57,12 +57,25 @@ function antialiased(img1, img2, x1, y1, width, height, maxDelta, d) {
 }
 
 function colorDelta(img1, img2, pos1, pos2) {
-    var r = img1[pos1 + 0] - img2[pos2 + 0],
-        g = img1[pos1 + 1] - img2[pos2 + 1],
-        b = img1[pos1 + 2] - img2[pos2 + 2],
-        a = img1[pos1 + 3] - img2[pos2 + 3];
+    var a1 = img1[pos1 + 3] / 255,
+        a2 = img2[pos2 + 3] / 255,
 
-    return (r * r) + (g * g) + (b * b) + (a * a);
+        r1 = img1[pos1 + 0] * a1,
+        g1 = img1[pos1 + 1] * a1,
+        b1 = img1[pos1 + 2] * a1,
+
+        r2 = img2[pos2 + 0] * a2,
+        g2 = img2[pos2 + 1] * a2,
+        b2 = img2[pos2 + 2] * a2,
+
+        y1 = 0.299 * r1 + 0.587 * g1 + 0.114 * b1,
+        y2 = 0.299 * r2 + 0.587 * g2 + 0.114 * b2,
+
+        yd = y1 - y2,
+        ud = 0.492 * (b1 - y1) - 0.492 * (b1 - y2),
+        vd = 0.877 * (r1 - y1) - 0.877 * (r2 - y2);
+
+    return (yd * yd) + (ud * ud) + (vd * vd);
 }
 
 function drawPixel(output, pos, r, g, b) {
@@ -73,7 +86,8 @@ function drawPixel(output, pos, r, g, b) {
 }
 
 function grayPixel(img, pos) {
-    return 0.30 * img[pos + 0] +
-           0.59 * img[pos + 1] +
-           0.11 * img[pos + 2];
+    var a = img[pos + 3] / 255;
+    return (0.30 * img[pos + 0] +
+            0.59 * img[pos + 1] +
+            0.11 * img[pos + 2]) * a;
 }
