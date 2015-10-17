@@ -25,7 +25,7 @@ function pixelmatch(img1, img2, output, width, height, threshold, antialiasing) 
                 }
 
             } else {
-                var val = 255 - 0.1 * (255 - grayPixel(img1, pos));
+                var val = 255 - 0.1 * (255 - grayPixel(img1, pos)) * img1[pos + 3] / 255;
                 drawPixel(output, pos, val, val, val);
             }
         }
@@ -86,8 +86,7 @@ function drawPixel(output, pos, r, g, b) {
 }
 
 function grayPixel(img, pos) {
-    var a = img[pos + 3] / 255;
-    return (0.30 * img[pos + 0] +
-            0.59 * img[pos + 1] +
-            0.11 * img[pos + 2]) * a;
+    return 0.30 * img[pos + 0] +
+           0.59 * img[pos + 1] +
+           0.11 * img[pos + 2];
 }
