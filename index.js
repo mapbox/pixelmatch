@@ -72,7 +72,7 @@ function colorDelta(img1, img2, pos1, pos2) {
         y2 = 0.299 * r2 + 0.587 * g2 + 0.114 * b2,
 
         yd = y1 - y2,
-        ud = 0.492 * (b1 - y1) - 0.492 * (b1 - y2),
+        ud = 0.492 * (b1 - y1) - 0.492 * (b2 - y2),
         vd = 0.877 * (r1 - y1) - 0.877 * (r2 - y2);
 
     return (yd * yd) + (ud * ud) + (vd * vd);
