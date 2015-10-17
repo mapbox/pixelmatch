@@ -13,20 +13,22 @@ function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMi
             ', threshold: ' + threshold + ', includeAA: ' + includeAA;
 
     test(name, function (t) {
-        var img1 = readImage(imgPath1);
-        var img2 = readImage(imgPath2);
-        var expectedDiff = readImage(diffPath);
+        var img1 = readImage(imgPath1, function () {
+            var img2 = readImage(imgPath2, function () {
+                var expectedDiff = readImage(diffPath, function () {
+                    var diff = new PNG({width: img1.width, height: img1.height});
+                    var mismatch = match(img1.data, img2.data, diff.data, diff.width, diff.height, threshold, includeAA);
 
-        var diff = new PNG({width: img1.width, height: img1.height});
-        var mismatch = match(img1.data, img2.data, diff.data, diff.width, diff.height, threshold, includeAA);
+                    t.same(diff.data, expectedDiff.data, 'diff image');
+                    t.same(mismatch, expectedMismatch, 'number of mismatched pixels');
 
-        t.same(diff.data, expectedDiff.data, 'diff image');
-        t.same(mismatch, expectedMismatch, 'number of mismatched pixels');
-
-        t.end();
+                    t.end();
+                });
+            });
+        });
     });
 }
 
-function readImage(name) {
-    return PNG.sync.read(fs.readFileSync(path.join(__dirname, '/fixtures/' + name + '.png')));
+function readImage(name, done) {
+    return fs.createReadStream(path.join(__dirname, '/fixtures/' + name + '.png')).pipe(new PNG()).on('parsed', done);
 }
