@@ -19,13 +19,13 @@ var numDiffPixels = pixelmatch(img1.data, img2.data, diff.data, 800, 600);
 
 ### API
 
-#### pixelmatch(img1, img2, output, width, height[, threshold, antialiasing])
+#### pixelmatch(img1, img2, output, width, height[, threshold, includeAA])
 
 - `img1`, `img2` — Image data of the images to compare (`Buffer` or `Uint8Array`).
 - `output` — Image data to write the diff to.
 - `width`, `height` — Width and height of the images. Note that all three images need to have the same dimensions.
 - `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.005` by default.
-- `antialiasing` — Radius of antialiasing to ignore in pixels. `1` by default.
+- `includeAA` — If `true`, disables detecting and ignoring anti-aliased pixels. `false` by default.
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 
@@ -34,7 +34,7 @@ Compares two images, writes the output diff and returns the number of mismatched
 Pixelmatch comes with a binary that works with PNG images:
 
 ```bash
-pixelmatch image1.png image2.png output.png 0.005 1
+pixelmatch image1.png image2.png output.png 0.005
 ```
 
 ### Install
@@ -56,7 +56,7 @@ browserify -s pixelmatch index.js > pixelmatch.js
 
 | expected | actual | diff |
 | --- | --- | --- |
-| ![](https://mapbox.s3.amazonaws.com/mapbox-gl-native/tests/4307.1/text-halo-blur/default/expected.png) | ![](https://mapbox.s3.amazonaws.com/mapbox-gl-native/tests/4307.1/text-halo-blur/default/actual.png) | ![1diff](https://cloud.githubusercontent.com/assets/25395/10480779/d9ad1c66-7274-11e5-8b6c-9b4987316eaa.png) |
+| ![](test/fixtures/1a.png) | ![](test/fixtures/b.png) | ![1diff](test/fixtures/1diff.png) |
 | ![](https://pbs.twimg.com/media/CRYXm86VAAQxo-o.png) | ![](https://pbs.twimg.com/media/CRYXm9uUYAAIGAf.png) | ![](https://pbs.twimg.com/media/CRYXnAAUwAEsuzb.png) |
 
 ### [Changelog](https://github.com/mapbox/pixelmatch/releases)
