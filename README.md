@@ -58,7 +58,8 @@ browserify -s pixelmatch index.js > pixelmatch.js
 
 | expected | actual | diff |
 | --- | --- | --- |
+| ![](test/fixtures/3a.png) | ![](test/fixtures/3b.png) | ![1diff](test/fixtures/3diff.png) |
 | ![](test/fixtures/1a.png) | ![](test/fixtures/1b.png) | ![1diff](test/fixtures/1diff.png) |
-| ![](https://pbs.twimg.com/media/CRYXm86VAAQxo-o.png) | ![](https://pbs.twimg.com/media/CRYXm9uUYAAIGAf.png) | ![](https://pbs.twimg.com/media/CRYXnAAUwAEsuzb.png) |
+| ![](test/fixtures/2a.png) | ![](test/fixtures/2b.png) | ![1diff](test/fixtures/2diff.png) |
 
 ### [Changelog](https://github.com/mapbox/pixelmatch/releases)
