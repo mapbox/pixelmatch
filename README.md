@@ -12,12 +12,20 @@ and [perceptual color metrics](https://en.wikipedia.org/wiki/YUV).
 Inspired by [Resemble.js](https://github.com/Huddle/Resemble.js)
 and [Blink-diff](https://github.com/yahoo/blink-diff).
 Unlike these libraries, pixelmatch is around **120 lines of code**,
-has **no dependencies**, and works on **raw arrays** of image data,
+has **more accurate* anti-aliasing detection, **no dependencies**,
+and works on **raw arrays** of image data,
 so it's **blazing fast** and can be used in **any environment** (Node or browsers).
 
 ```js
 var numDiffPixels = pixelmatch(img1.data, img2.data, diff.data, 800, 600);
 ```
+
+### Example output
+
+| expected | actual | diff |
+| --- | --- | --- |
+| ![](test/fixtures/4a.png) | ![](test/fixtures/4b.png) | ![1diff](test/fixtures/4diff.png) |
+| ![](test/fixtures/3a.png) | ![](test/fixtures/3b.png) | ![1diff](test/fixtures/3diff.png) |
 
 ### API
 
@@ -53,14 +61,5 @@ To build a browser-compatible version, clone the repository locally, then run:
 npm install -g browserify
 browserify -s pixelmatch index.js > pixelmatch.js
 ```
-
-### Example output
-
-| expected | actual | diff |
-| --- | --- | --- |
-| ![](test/fixtures/4a.png) | ![](test/fixtures/4b.png) | ![1diff](test/fixtures/4diff.png) |
-| ![](test/fixtures/2a.png) | ![](test/fixtures/2b.png) | ![1diff](test/fixtures/2diff.png) |
-| ![](test/fixtures/1a.png) | ![](test/fixtures/1b.png) | ![1diff](test/fixtures/1diff.png) |
-| ![](test/fixtures/3a.png) | ![](test/fixtures/3b.png) | ![1diff](test/fixtures/3diff.png) |
 
 ### [Changelog](https://github.com/mapbox/pixelmatch/releases)
