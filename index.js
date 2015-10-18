@@ -14,8 +14,8 @@ function pixelmatch(img1, img2, output, width, height, threshold, includeAA) {
             var delta = colorDelta(img1, img2, pos, pos);
 
             if (delta > maxDelta) {
-                if (!includeAA && (antialiased(img1, x, y, width, height) ||
-                                   antialiased(img2, x, y, width, height))) {
+                if (!includeAA && (antialiased(img1, x, y, width, height, img2) ||
+                                   antialiased(img2, x, y, width, height, img1))) {
                     drawPixel(output, pos, 255, 255, 0);
 
                 } else {
@@ -33,7 +33,7 @@ function pixelmatch(img1, img2, output, width, height, threshold, includeAA) {
     return diff;
 }
 
-function antialiased(img, x1, y1, width, height, partial) {
+function antialiased(img, x1, y1, width, height, img2) {
     var x0 = Math.max(x1 - 1, 0),
         y0 = Math.max(y1 - 1, 0),
         x2 = Math.min(x1 + 1, width - 1),
@@ -55,7 +55,7 @@ function antialiased(img, x1, y1, width, height, partial) {
             if (delta === 0) zeroes++;
             if (zeroes > 2) return false;
 
-            if (partial) continue;
+            if (!img2) continue;
 
             if (delta < 0) negatives++;
             else if (delta > 0) positives++;
@@ -73,12 +73,12 @@ function antialiased(img, x1, y1, width, height, partial) {
         }
     }
 
-    if (partial) return true;
+    if (!img2) return true;
 
     if (negatives === 0 || positives === 0) return false;
 
-    return !antialiased(img, minX, minY, width, height, true) ||
-           !antialiased(img, maxX, maxY, width, height, true);
+    return (!antialiased(img, minX, minY, width, height) && !antialiased(img2, minX, minY, width, height)) ||
+           (!antialiased(img, maxX, maxY, width, height) && !antialiased(img2, maxX, maxY, width, height));
 }
 
 function colorDelta(img1, img2, i, j, yOnly) {
