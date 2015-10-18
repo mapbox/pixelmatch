@@ -4,16 +4,15 @@
 [![Coverage Status](https://coveralls.io/repos/mapbox/pixelmatch/badge.svg?branch=master&service=github)](https://coveralls.io/github/mapbox/pixelmatch?branch=master)
 
 The smallest, simplest and fastest JavaScript pixel-level image comparison library,
-primarily designed to be used in regression tests that compare screenshots.
+originally created to compare screenshots in tests.
 
-Features [anti-aliased pixels detection](http://www.ee.ktu.lt/journal/2009/7/25_ISSN_1392-1215_Anti-aliased%20Pxel%20and%20Intensity%20Slope%20Detector.pdf)
+Features accurate [anti-aliased pixels detection](http://www.ee.ktu.lt/journal/2009/7/25_ISSN_1392-1215_Anti-aliased%20Pxel%20and%20Intensity%20Slope%20Detector.pdf)
 and [perceptual color metrics](https://en.wikipedia.org/wiki/YUV).
 
 Inspired by [Resemble.js](https://github.com/Huddle/Resemble.js)
 and [Blink-diff](https://github.com/yahoo/blink-diff).
 Unlike these libraries, pixelmatch is around **120 lines of code**,
-has **more accurate* anti-aliasing detection, **no dependencies**,
-and works on **raw arrays** of image data,
+has **no dependencies**, and works on **raw arrays** of image data,
 so it's **blazing fast** and can be used in **any environment** (Node or browsers).
 
 ```js
