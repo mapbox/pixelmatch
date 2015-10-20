@@ -54,7 +54,7 @@ pixelmatch image1.png image2.png output.png 0.1
 
 #### Node.js
 
-```
+```js
 var fs = require('fs'),
     PNG = require('pngjs2').PNG,
     pixelmatch = require('pixelmatch');
@@ -66,7 +66,7 @@ function doneReading() {
     if (!img1.data || !img2.data) return;
 
     var diff = new PNG({width: img1.width, height: img1.height});
-    match(img1.data, img2.data, diff.data, img1.width, img1.height, {threshold: 0.1});
+    pixelmatch(img1.data, img2.data, diff.data, img1.width, img1.height, {threshold: 0.1});
 
     diff.pack().pipe(fs.createWriteStream('diff.png'));
 }
@@ -74,12 +74,12 @@ function doneReading() {
 
 #### Browsers
 
-```
+```js
 var img1 = img1Ctx.getImageData(0, 0, width, height),
     img2 = img2Ctx.getImageData(0, 0, width, height),
     diff = diffCtx.createImageData(width, height);
 
-match(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
+pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
 
 diffCtx.putImageData(diff, 0, 0);
 ```
