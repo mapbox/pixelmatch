@@ -7,7 +7,7 @@ function pixelmatch(img1, img2, output, width, height, threshold, includeAA) {
     if (threshold === undefined) threshold = 0.005;
 
     // scale the difference threshold to the maximum square YUV distance between two colors
-    var maxDelta = 255 * 255 * 3 * threshold,
+    var maxDelta = 255 * 255 * 3 * threshold * threshold,
         diff = 0;
 
     // compare each pixel of one image against the other one

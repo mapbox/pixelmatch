@@ -25,6 +25,7 @@ var numDiffPixels = pixelmatch(img1.data, img2.data, diff.data, 800, 600);
 | --- | --- | --- |
 | ![](test/fixtures/4a.png) | ![](test/fixtures/4b.png) | ![1diff](test/fixtures/4diff.png) |
 | ![](test/fixtures/3a.png) | ![](test/fixtures/3b.png) | ![1diff](test/fixtures/3diff.png) |
+| ![](test/fixtures/1a.png) | ![](test/fixtures/1b.png) | ![1diff](test/fixtures/1diff.png) |
 
 ### API
 
@@ -33,7 +34,7 @@ var numDiffPixels = pixelmatch(img1.data, img2.data, diff.data, 800, 600);
 - `img1`, `img2` — Image data of the images to compare (`Buffer` or `Uint8Array`).
 - `output` — Image data to write the diff to.
 - `width`, `height` — Width and height of the images. Note that all three images need to have the same dimensions.
-- `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.005` by default.
+- `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.1` by default.
 - `includeAA` — If `true`, disables detecting and ignoring anti-aliased pixels. `false` by default.
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
@@ -43,7 +44,7 @@ Compares two images, writes the output diff and returns the number of mismatched
 Pixelmatch comes with a binary that works with PNG images:
 
 ```bash
-pixelmatch image1.png image2.png output.png 0.005
+pixelmatch image1.png image2.png output.png 0.1
 ```
 
 ### Install
