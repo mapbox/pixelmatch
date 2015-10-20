@@ -21,7 +21,10 @@ function doneReading() {
     var diff = new PNG({width: this.width, height: this.height});
 
     console.time('match');
-    var diffs = match(img1.data, this.data, diff.data, this.width, this.height, threshold, includeAA);
+    var diffs = match(img1.data, this.data, diff.data, this.width, this.height, {
+        threshold: threshold,
+        includeAA: includeAA
+    });
     console.timeEnd('match');
 
     diff.pack().pipe(fs.createWriteStream(process.argv[4]));

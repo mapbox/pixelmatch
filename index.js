@@ -2,11 +2,13 @@
 
 module.exports = pixelmatch;
 
-function pixelmatch(img1, img2, output, width, height, threshold, includeAA) {
+function pixelmatch(img1, img2, output, width, height, options) {
 
-    if (threshold === undefined) threshold = 0.005;
+    if (!options) options = {};
 
-    // scale the difference threshold to the maximum square YUV distance between two colors
+    var threshold = options.threshold === undefined ? 0.1 : options.threshold;
+
+    // maximum acceptable square YUV distance between two colors
     var maxDelta = 255 * 255 * 3 * threshold * threshold,
         diff = 0;
 
@@ -22,7 +24,7 @@ function pixelmatch(img1, img2, output, width, height, threshold, includeAA) {
             // the color difference is above the threshold
             if (delta > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
-                if (!includeAA && (antialiased(img1, x, y, width, height, img2) ||
+                if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
                                    antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     drawPixel(output, pos, 255, 255, 0);

@@ -20,7 +20,11 @@ function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMi
             var img2 = readImage(imgPath2, function () {
                 var expectedDiff = readImage(diffPath, function () {
                     var diff = new PNG({width: img1.width, height: img1.height});
-                    var mismatch = match(img1.data, img2.data, diff.data, diff.width, diff.height, threshold, includeAA);
+
+                    var mismatch = match(img1.data, img2.data, diff.data, diff.width, diff.height, {
+                        threshold: threshold,
+                        includeAA: includeAA
+                    });
 
                     t.same(diff.data, expectedDiff.data, 'diff image');
                     t.same(mismatch, expectedMismatch, 'number of mismatched pixels');

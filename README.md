@@ -16,7 +16,7 @@ has **no dependencies**, and works on **raw arrays** of image data,
 so it's **blazing fast** and can be used in **any environment** (Node or browsers).
 
 ```js
-var numDiffPixels = pixelmatch(img1.data, img2.data, diff.data, 800, 600);
+var numDiffPixels = pixelmatch(img1, img2, diff, 800, 600, {threshold: 0.1});
 ```
 
 ### Example output
@@ -29,11 +29,14 @@ var numDiffPixels = pixelmatch(img1.data, img2.data, diff.data, 800, 600);
 
 ### API
 
-#### pixelmatch(img1, img2, output, width, height[, threshold, includeAA])
+#### pixelmatch(img1, img2, output, width, height[, options])
 
 - `img1`, `img2` — Image data of the images to compare (`Buffer` or `Uint8Array`).
 - `output` — Image data to write the diff to.
-- `width`, `height` — Width and height of the images. Note that all three images need to have the same dimensions.
+- `width`, `height` — Width and height of the images. Note that _all three images_ need to have the same dimensions.
+
+`options` is an object literal with the following properties:
+
 - `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.1` by default.
 - `includeAA` — If `true`, disables detecting and ignoring anti-aliased pixels. `false` by default.
 
@@ -45,6 +48,40 @@ Pixelmatch comes with a binary that works with PNG images:
 
 ```bash
 pixelmatch image1.png image2.png output.png 0.1
+```
+
+### Example usage
+
+#### Node.js
+
+```
+var fs = require('fs'),
+    PNG = require('pngjs2').PNG,
+    pixelmatch = require('pixelmatch');
+
+var img1 = fs.createReadStream('img1.png').pipe(new PNG()).on('parsed', doneReading);
+var img2 = fs.createReadStream('img2.png').pipe(new PNG()).on('parsed', doneReading);
+
+function doneReading() {
+    if (!img1.data || !img2.data) return;
+
+    var diff = new PNG({width: img1.width, height: img1.height});
+    match(img1.data, img2.data, diff.data, img1.width, img1.height, {threshold: 0.1});
+
+    diff.pack().pipe(fs.createWriteStream('diff.png'));
+}
+```
+
+#### Browsers
+
+```
+var img1 = img1Ctx.getImageData(0, 0, width, height),
+    img2 = img2Ctx.getImageData(0, 0, width, height),
+    diff = diffCtx.createImageData(width, height);
+
+match(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
+
+diffCtx.putImageData(diff, 0, 0);
 ```
 
 ### Install
