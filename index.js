@@ -27,18 +27,18 @@ function pixelmatch(img1, img2, output, width, height, options) {
                 if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
                                    antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
-                    drawPixel(output, pos, 255, 255, 0);
+                    if (output) drawPixel(output, pos, 255, 255, 0);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as red
-                    drawPixel(output, pos, 255, 0, 0);
+                    if (output) drawPixel(output, pos, 255, 0, 0);
                     diff++;
                 }
 
             } else {
                 // pixels are similar; draw background as grayscale image blended with white
                 var val = 255 - 0.1 * (255 - grayPixel(img1, pos)) * img1[pos + 3] / 255;
-                drawPixel(output, pos, val, val, val);
+                if (output) drawPixel(output, pos, val, val, val);
             }
         }
     }
