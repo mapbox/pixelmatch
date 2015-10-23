@@ -22,8 +22,8 @@ var numDiffPixels = pixelmatch(img1, img2, diff, 800, 600, {threshold: 0.1});
 
 Implements ideas from the following papers:
 
-- [Measuring perceived color difference using YIQ NTSC transmission color space in mobile applications](http://www.progmat.uaem.mx:8080/artVol2Num2/Articulo3Vol2Num2.pdf) (2010 Y. Kotsarenko, F. Ramos)
-- [Anti-aliased pixel and intensity slope detector](http://www.ee.ktu.lt/journal/2009/7/25_ISSN_1392-1215_Anti-aliased%20Pxel%20and%20Intensity%20Slope%20Detector.pdf) (2009 V. Vyšniauskas)
+- [Measuring perceived color difference using YIQ NTSC transmission color space in mobile applications](http://www.progmat.uaem.mx:8080/artVol2Num2/Articulo3Vol2Num2.pdf) (2010, Yuriy Kotsarenko, Fernando Ramos)
+- [Anti-aliased pixel and intensity slope detector](http://www.ee.ktu.lt/journal/2009/7/25_ISSN_1392-1215_Anti-aliased%20Pxel%20and%20Intensity%20Slope%20Detector.pdf) (2009, Vytautas Vyšniauskas)
 
 ### Example output
 
@@ -38,7 +38,7 @@ Implements ideas from the following papers:
 #### pixelmatch(img1, img2, output, width, height[, options])
 
 - `img1`, `img2` — Image data of the images to compare (`Buffer` or `Uint8Array`).
-- `output` — Image data to write the diff to.
+- `output` — Image data to write the diff to, or `null` if don't need a diff image.
 - `width`, `height` — Width and height of the images. Note that _all three images_ need to have the same dimensions.
 
 `options` is an object literal with the following properties:
