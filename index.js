@@ -8,7 +8,8 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
     var threshold = options.threshold === undefined ? 0.1 : options.threshold;
 
-    // maximum acceptable square distance between two colors
+    // maximum acceptable square distance between two colors;
+    // 35215 is the maximum possible value for the YIQ difference metric
     var maxDelta = 35215 * threshold * threshold,
         diff = 0;
 
@@ -107,8 +108,8 @@ function antialiased(img, x1, y1, width, height, img2) {
            (!antialiased(img, maxX, maxY, width, height) && !antialiased(img2, maxX, maxY, width, height));
 }
 
-// calculate either the squared perceptual YIQ distance between colors,
-// or just the brightness differene (Y component) if yOnly is true
+// calculate color difference according to the paper "Measuring perceived color difference
+// using YIQ NTSC transmission color space in mobile applications" by Y. Kotsarenko and F. Ramos
 
 function colorDelta(img1, img2, k, m, yOnly) {
     var a1 = img1[k + 3] / 255,
@@ -124,7 +125,7 @@ function colorDelta(img1, img2, k, m, yOnly) {
 
         y = rgb2y(r1, g1, b1) - rgb2y(r2, g2, b2);
 
-    if (yOnly) return y;
+    if (yOnly) return y; // brightness difference only
 
     var i = rgb2i(r1, g1, b1) - rgb2i(r2, g2, b2),
         q = rgb2q(r1, g1, b1) - rgb2q(r2, g2, b2);
@@ -136,6 +137,7 @@ function rgb2y(r, g, b) { return r * 0.29889531 + g * 0.58662247 + b * 0.1144822
 function rgb2i(r, g, b) { return r * 0.59597799 - g * 0.27417610 - b * 0.32180189; }
 function rgb2q(r, g, b) { return r * 0.21147017 - g * 0.52261711 + b * 0.31114694; }
 
+// blend semi-transparent color with white
 function blend(c, a) {
     return 255 + (c - 255) * a;
 }
