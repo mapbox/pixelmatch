@@ -6,10 +6,10 @@ var PNG = require('pngjs2').PNG,
     path = require('path'),
     match = require('../.');
 
-diffTest('1a', '1b', '1diff', 0.03, false, 144);
-diffTest('2a', '2b', '2diff', 0.03, false, 12785);
-diffTest('3a', '3b', '3diff', 0.03, false, 212);
-diffTest('4a', '4b', '4diff', 0.03, false, 36383);
+diffTest('1a', '1b', '1diff', 0.05, false, 143);
+diffTest('2a', '2b', '2diff', 0.05, false, 12439);
+diffTest('3a', '3b', '3diff', 0.05, false, 212);
+diffTest('4a', '4b', '4diff', 0.05, false, 36089);
 
 function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMismatch) {
     var name = 'comparing ' + imgPath1 + ' to ' + imgPath2 +
