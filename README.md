@@ -62,7 +62,7 @@ pixelmatch image1.png image2.png output.png 0.1
 
 ```js
 var fs = require('fs'),
-    PNG = require('pngjs2').PNG,
+    PNG = require('pngjs').PNG,
     pixelmatch = require('pixelmatch');
 
 var img1 = fs.createReadStream('img1.png').pipe(new PNG()).on('parsed', doneReading),

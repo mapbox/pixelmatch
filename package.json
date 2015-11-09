@@ -7,7 +7,7 @@
     "pixelmatch": "bin/pixelmatch"
   },
   "dependencies": {
-    "pngjs2": "^2.0.0"
+    "pngjs": "^2.1.0"
   },
   "devDependencies": {
     "eslint": "^1.6.0",

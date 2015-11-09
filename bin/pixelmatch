@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-var PNG = require('pngjs2').PNG,
+var PNG = require('pngjs').PNG,
     fs = require('fs'),
     match = require('../.');
 
