@@ -1,6 +1,6 @@
 'use strict';
 
-var PNG = require('pngjs2').PNG,
+var PNG = require('pngjs').PNG,
     fs = require('fs'),
     test = require('tap').test,
     path = require('path'),
