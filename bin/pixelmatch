@@ -9,7 +9,7 @@ if (process.argv.length < 5) {
     return console.log('Usage: imagematch image1.png image2.png output.png [threshold=0.005] [includeAA=false]');
 }
 
-var threshold = +process.argv[5],
+var threshold = isNaN(+process.argv[5]) ? undefined : +process.argv[5],
     includeAA = process.argv[6] === 'true';
 
 var img1 = fs.createReadStream(process.argv[2]).pipe(new PNG()).on('parsed', doneReading);
