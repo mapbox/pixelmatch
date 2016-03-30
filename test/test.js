@@ -23,6 +23,31 @@ diffTest('4a', '4b', '4diff', {
     includeAA: false
 }, 36089);
 
+diffTest('1a', '1b', '1diffb', {
+    threshold: 0.05,
+    includeAA: false,
+    antiAliasingColor: [0, 255, 0],
+    differenceColor: [255, 0, 255]
+}, 143);
+diffTest('2a', '2b', '2diffb', {
+    threshold: 0.05,
+    includeAA: false,
+    antiAliasingColor: [0, 255, 0],
+    differenceColor: [255, 0, 255]
+}, 12439);
+diffTest('3a', '3b', '3diffb', {
+    threshold: 0.05,
+    includeAA: false,
+    antiAliasingColor: [0, 255, 0],
+    differenceColor: [255, 0, 255]
+}, 212);
+diffTest('4a', '4b', '4diffb', {
+    threshold: 0.05,
+    includeAA: false,
+    antiAliasingColor: [0, 255, 0],
+    differenceColor: [255, 0, 255]
+}, 36089);
+
 function diffTest(imgPath1, imgPath2, diffPath, options, expectedMismatch) {
     var name = 'comparing ' + imgPath1 + ' to ' + imgPath2 +
             ', ' + JSON.stringify(options);
