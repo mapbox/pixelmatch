@@ -16,7 +16,7 @@
   },
   "scripts": {
     "pretest": "eslint index.js bin/pixelmatch test/test.js",
-    "test": "tap test/test.js"
+    "test": "tap test/test.js --no-coverage"
   },
   "repository": {
     "type": "git",
