@@ -11,6 +11,13 @@ diffTest('2a', '2b', '2diff', 0.05, false, 12439);
 diffTest('3a', '3b', '3diff', 0.05, false, 212);
 diffTest('4a', '4b', '4diff', 0.05, false, 36089);
 
+test('throws error if image sizes do not match', function (t) {
+    t.throws(function () {
+        match([1, 2, 3], [1, 2, 3, 4], null, 2, 1);
+    }, /Image sizes do not match/);
+    t.end();
+});
+
 function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMismatch) {
     var name = 'comparing ' + imgPath1 + ' to ' + imgPath2 +
             ', threshold: ' + threshold + ', includeAA: ' + includeAA;
