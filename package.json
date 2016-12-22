@@ -1,5 +1,5 @@
 {
-  "name": "pixelmatch",
+  "name": "@mapbox/pixelmatch",
   "version": "4.0.2",
   "description": "The smallest and fastest pixel-level image comparison library.",
   "main": "index.js",
