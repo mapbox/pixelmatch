@@ -91,6 +91,10 @@ pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
 diffCtx.putImageData(diff, 0, 0);
 ```
 
+#### Requirebin demo
+
+[![view on requirebin](http://requirebin.com/badge.png)](http://requirebin.com/?gist=5aeae6f88dbf33d067110564a5aad849)
+
 ### Install
 
 Install with NPM:
