@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/mapbox/pixelmatch.svg?branch=master)](https://travis-ci.org/mapbox/pixelmatch)
 [![Coverage Status](https://coveralls.io/repos/mapbox/pixelmatch/badge.svg?branch=master&service=github)](https://coveralls.io/github/mapbox/pixelmatch?branch=master)
 [![](https://img.shields.io/badge/simply-awesome-brightgreen.svg)](https://github.com/mourner/projects)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fmapbox%2Fpixelmatch.svg?type=shield)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fmapbox%2Fpixelmatch?ref=badge_shield)
 
 The smallest, simplest and fastest JavaScript pixel-level image comparison library,
 originally created to compare screenshots in tests.
@@ -107,3 +108,6 @@ browserify -s pixelmatch index.js > pixelmatch.js
 ```
 
 ### [Changelog](https://github.com/mapbox/pixelmatch/releases)
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fmapbox%2Fpixelmatch.svg?type=large)](https://app.fossa.io/projects/git%2Bhttps%3A%2F%2Fgithub.com%2Fmapbox%2Fpixelmatch?ref=badge_large)
