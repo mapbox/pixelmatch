@@ -2,15 +2,9 @@
 # yarn lockfile v1
 
 
-"@types/node@*":
+"@types/node@^8.0.47":
   version "8.0.47"
   resolved "https://registry.npmjs.org/@types/node/-/node-8.0.47.tgz#968e596f91acd59069054558a00708c445ca30c2"
-
-"@types/pngjs@^3.3.0":
-  version "3.3.0"
-  resolved "https://registry.npmjs.org/@types/pngjs/-/pngjs-3.3.0.tgz#1bd2d6d28bc89750f3deb07f584c33f5910369ea"
-  dependencies:
-    "@types/node" "*"
 
 acorn-jsx@^3.0.0:
   version "3.0.1"

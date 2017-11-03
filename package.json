@@ -7,7 +7,7 @@
     "pixelmatch": "bin/pixelmatch"
   },
   "dependencies": {
-    "@types/pngjs": "^3.3.0",
+    "@types/node": "^8.0.47",
     "pngjs": "^3.3.0"
   },
   "devDependencies": {

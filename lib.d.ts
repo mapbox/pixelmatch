@@ -1,8 +1,6 @@
-import {PNG} from "pngjs";
-
 export = PixelmatchFunction;
 
-declare function PixelmatchFunction(img1: PNG, img2: PNG, output: PNG | null, width: number, height: number, options: PixelmatchFunction.Options | undefined): number;
+declare function PixelmatchFunction(img1: Buffer, img2: Buffer, output: Buffer | null, width: number, height: number, options: PixelmatchFunction.Options | undefined): number;
 
 declare namespace PixelmatchFunction {
     export interface Options {
