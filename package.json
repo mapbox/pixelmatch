@@ -7,6 +7,7 @@
     "pixelmatch": "bin/pixelmatch"
   },
   "dependencies": {
+    "@types/node": "^8.0.47",
     "pngjs": "^3.3.0"
   },
   "devDependencies": {
@@ -35,5 +36,6 @@
   "bugs": {
     "url": "https://github.com/mapbox/pixelmatch/issues"
   },
-  "homepage": "https://github.com/mapbox/pixelmatch#readme"
+  "homepage": "https://github.com/mapbox/pixelmatch#readme",
+  "typings": "lib.d.ts"
 }
