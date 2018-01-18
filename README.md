@@ -45,6 +45,7 @@ Implements ideas from the following papers:
 
 - `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.1` by default.
 - `includeAA` — If `true`, disables detecting and ignoring anti-aliased pixels. `false` by default.
+- `ignoreColor` — Indicates if pixels of a certain color must be ignored when comparing the images. Set this member to an object literal such as `{ r: 255, g: 255, b:255 }`
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 

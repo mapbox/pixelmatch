@@ -24,6 +24,21 @@ function pixelmatch(img1, img2, output, width, height, options) {
             // squared YUV distance between colors at this pixel position
             var delta = colorDelta(img1, img2, pos, pos);
 
+            // Determine if the current pixel should be ignored in the comparison
+            if (options.ignoreColor !== undefined) {
+                let img1Pixel = getPixel(img1, width,  x, y);
+                let img2Pixel = getPixel(img2, width, x, y);
+
+                if ((img1Pixel.r === options.ignoreColor.r &&
+                     img1Pixel.g === options.ignoreColor.g &&
+                     img1Pixel.b === options.ignoreColor.b) ||
+                    (img2Pixel.r === options.ignoreColor.r &&
+                     img2Pixel.g === options.ignoreColor.g &&
+                     img2Pixel.b === options.ignoreColor.b)) {
+                    delta = 0;
+                }
+            }
+
             // the color difference is above the threshold
             if (delta > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
@@ -48,6 +63,18 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
     // return the number of different pixels
     return diff;
+}
+
+// retrieves a RGBA pixel from the (x,y) coordinate in img
+function getPixel(img, width, x, y) {
+    let pos = (y * width + x) * 4;
+    let pixel =  {
+        r: img[pos + 0],
+        g: img[pos + 1],
+        b: img[pos + 2],
+        a: img[pos + 3]
+    };
+    return pixel;
 }
 
 // check if a pixel is likely a part of anti-aliasing;
