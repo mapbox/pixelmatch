@@ -6,10 +6,14 @@ var PNG = require('pngjs').PNG,
     path = require('path'),
     match = require('../.');
 
-diffTest('1a', '1b', '1diff', 0.05, false, 143);
-diffTest('2a', '2b', '2diff', 0.05, false, 12439);
-diffTest('3a', '3b', '3diff', 0.05, false, 212);
-diffTest('4a', '4b', '4diff', 0.05, false, 36089);
+diffTest('1a', '1b', '1diff', 0.05, false, undefined, 143);
+diffTest('2a', '2b', '2diff', 0.05, false, undefined, 12439);
+diffTest('3a', '3b', '3diff', 0.05, false, undefined, 212);
+diffTest('4a', '4b', '4diff', 0.05, false, undefined, 36089);
+diffTest('5a', '5b', '5diff', 0.00, false, {r: 0, g: 255, b: 0}, 41072);     //ignoreColor present in image1
+diffTest('5a', '5b', '6diff', 0.00, false, {r: 255, g: 255, b: 255}, 52220); //ignoreColor present in both images
+diffTest('5a', '5b', '7diff', 0.00, false, {r: 136, g: 0, b: 21}, 117018);   //ignoreColor present in image2
+diffTest('5a', '5b', '8diff', 0.00, false, {r: 0, g: 0, b: 0}, 210310);      //ignoreColor not present in either image
 
 test('throws error if image sizes do not match', function (t) {
     t.throws(function () {
@@ -18,9 +22,9 @@ test('throws error if image sizes do not match', function (t) {
     t.end();
 });
 
-function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMismatch) {
+function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, ignoreColor, expectedMismatch) {
     var name = 'comparing ' + imgPath1 + ' to ' + imgPath2 +
-            ', threshold: ' + threshold + ', includeAA: ' + includeAA;
+            ', threshold: ' + threshold + ', includeAA: ' + includeAA + ', ignoreColor: ' + JSON.stringify(ignoreColor);
 
     test(name, function (t) {
         var img1 = readImage(imgPath1, function () {
@@ -30,12 +34,14 @@ function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMi
 
                     var mismatch = match(img1.data, img2.data, diff.data, diff.width, diff.height, {
                         threshold: threshold,
-                        includeAA: includeAA
+                        includeAA: includeAA,
+                        ignoreColor: ignoreColor
                     });
 
                     var mismatch2 = match(img1.data, img2.data, null, diff.width, diff.height, {
                         threshold: threshold,
-                        includeAA: includeAA
+                        includeAA: includeAA,
+                        ignoreColor: ignoreColor
                     });
 
                     t.same(diff.data, expectedDiff.data, 'diff image');
