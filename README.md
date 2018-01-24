@@ -45,6 +45,8 @@ Implements ideas from the following papers:
 
 - `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.1` by default.
 - `includeAA` — If `true`, disables detecting and ignoring anti-aliased pixels. `false` by default.
+- `mismatchColor` — An array of 3 values (red, green and blue) to define the color of the mismatching pixels in the output. `[255, 0, 0]` by default (red).
+- `antiAliasedColor` — If `includeAA` is `false`, define the color of the anti-aliased pixels in the output. It is an array of 3 values (red, gree and blue). `[255, 255, 0]` by default (yellow).
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 
