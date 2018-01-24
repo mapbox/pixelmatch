@@ -2,13 +2,26 @@
 
 module.exports = pixelmatch;
 
+var defaults = {
+    threshold: 0.1,
+    includeAA: false,
+    antiAliasedColor: [255, 255, 0],
+    mismatchColor: [255, 0, 0]
+};
+
 function pixelmatch(img1, img2, output, width, height, options) {
 
     if (img1.length !== img2.length) throw new Error('Image sizes do not match.');
 
+    // Merge options with defaults
     if (!options) options = {};
+    for (var key in defaults) {
+        if (options[key] === undefined) {
+            options[key] = defaults[key];
+        }
+    }
 
-    var threshold = options.threshold === undefined ? 0.1 : options.threshold;
+    var threshold = options.threshold;
 
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
@@ -30,11 +43,11 @@ function pixelmatch(img1, img2, output, width, height, options) {
                 if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
                                    antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
-                    if (output) drawPixel(output, pos, 255, 255, 0);
+                    if (output) drawPixel(output, pos, options.antiAliasedColor[0], options.antiAliasedColor[1], options.antiAliasedColor[2]);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as red
-                    if (output) drawPixel(output, pos, 255, 0, 0);
+                    if (output) drawPixel(output, pos, options.mismatchColor[0], options.mismatchColor[1], options.mismatchColor[2]);
                     diff++;
                 }
 
