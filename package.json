@@ -6,12 +6,10 @@
   "bin": {
     "pixelmatch": "bin/pixelmatch"
   },
-  "dependencies": {
-    "pngjs": "^3.3.0"
-  },
   "devDependencies": {
     "eslint": "^4.5.0",
     "eslint-config-mourner": "^2.0.1",
+    "pngjs": "^3.3.0",
     "tap": "^10.7.2"
   },
   "scripts": {
