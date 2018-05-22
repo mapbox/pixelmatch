@@ -9,11 +9,32 @@ function pixelmatch(img1, img2, output, width, height, options) {
     if (!options) options = {};
 
     var threshold = options.threshold === undefined ? 0.1 : options.threshold;
+    var includeDiffOnDataEquality = options.includeDiffOnDataEquality === undefined ? true : options.includeDiffOnDataEquality;
 
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
     var maxDelta = 35215 * threshold * threshold,
         diff = 0;
+
+    // if in node.js environment, check if the buffers are equal
+    if (typeof Buffer === 'function') {
+        var img1Buffer = Buffer.isBuffer(img1) ? img1 : Buffer.from(img1);
+        var img2Buffer = Buffer.isBuffer(img2) ? img2 : Buffer.from(img2);
+
+        if (img1Buffer.equals(img2Buffer)) {
+            if (includeDiffOnDataEquality && output) {
+                // return grey image
+                drawGrayImage(img1, output, width, height);
+            }
+            return diff;
+        }
+    } else if (isEqual(img1, img2)) {
+        if (includeDiffOnDataEquality && output) {
+            drawGrayImage(img1, output, width, height);
+        }
+
+        return diff;
+    }
 
     // compare each pixel of one image against the other one
     for (var y = 0; y < height; y++) {
@@ -157,4 +178,29 @@ function grayPixel(img, i) {
         g = blend(img[i + 1], a),
         b = blend(img[i + 2], a);
     return rgb2y(r, g, b);
+}
+
+function drawGrayImage(img1, output, width, height) {
+    for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+            var pos = (y * width + x) * 4;
+
+            var val = blend(grayPixel(img1, pos), 0.1);
+            drawPixel(output, pos, val, val, val);
+        }
+    }
+}
+
+function isEqual(arr1, arr2) {
+    if (arr1.length !== arr2.length) {
+        return false;
+    }
+
+    for (var x = 0; x < arr1.length; x++) {
+        if (arr1[x] !== arr2[x]) {
+            return false;
+        }
+    }
+
+    return true;
 }

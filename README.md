@@ -45,6 +45,7 @@ Implements ideas from the following papers:
 
 - `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.1` by default.
 - `includeAA` — If `true`, disables detecting and ignoring anti-aliased pixels. `false` by default.
+- `includeDiffOnDataEquality` - If `false`, disables writing a diff image on perfect match, meaning `Buffer` or `Array` equality. Useful for performance gains in CI pipelines. `true` by default.
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 

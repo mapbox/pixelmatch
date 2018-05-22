@@ -18,6 +18,60 @@ test('throws error if image sizes do not match', function (t) {
     t.end();
 });
 
+test('should not write a diff on exact match if includeDiffOnDataEquality=false', function (t) {
+    var diff = [];
+    var mismatch = match(Buffer.from([1, 2, 3, 4]), [1, 2, 3, 4], diff, 1, 1, {
+        includeDiffOnDataEquality: false
+    });
+
+    t.deepEqual(diff, []);
+    t.equal(mismatch, 0);
+    t.end();
+});
+
+test('should write a gray image on exact match', function (t) {
+    var diff = [];
+    var mismatch = match(Buffer.from([1, 2, 3, 4]), [1, 2, 3, 4], diff, 1, 1);
+
+    t.deepEqual(diff, [254.60284823051373, 254.60284823051373, 254.60284823051373, 255]);
+    t.equal(mismatch, 0);
+    t.end();
+});
+
+test('should write a gray image on data equality', function (t) {
+    var img1 = readImage('5a', function () {
+        var expectedDiff = readImage('5diff', function () {
+            var img2 = Buffer.alloc(img1.data.length);
+            img1.data.copy(img2);
+            var diff = new PNG({width: img1.width, height: img1.height});
+
+            var mismatch = match(img1.data, img2, diff.data, diff.width, diff.height);
+
+            t.deepEqual(diff.data, expectedDiff.data, 'diff image');
+            t.equal(mismatch, 0);
+
+            t.end();
+        });
+    });
+});
+
+test('should not write diff image on data equality if includeDiffOnDataEquality=false', function (t) {
+    var img1 = readImage('5a', function () {
+        var img2 = Buffer.alloc(img1.data.length);
+        img1.data.copy(img2);
+        var diff = [];
+
+        var mismatch = match(img1.data, img2, diff.data, diff.width, diff.height, {
+            includeDiffOnDataEquality: false
+        });
+
+        t.deepEqual(diff, [], 'diff image');
+        t.equal(mismatch, 0);
+
+        t.end();
+    });
+});
+
 function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMismatch) {
     var name = 'comparing ' + imgPath1 + ' to ' + imgPath2 +
             ', threshold: ' + threshold + ', includeAA: ' + includeAA;
