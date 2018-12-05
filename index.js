@@ -9,6 +9,12 @@ function pixelmatch(img1, img2, output, width, height, options) {
     if (!options) options = {};
 
     var threshold = options.threshold === undefined ? 0.1 : options.threshold;
+    var alpha = options.alpha === undefined ? 0.1 : options.alpha;
+    var aaColor = options.aaColor || {r: 255, g: 255, b: 0};
+    var diffColor = options.diffColor || {r: 255, g: 0, b: 0};
+
+    var aaR = aaColor.r, aaG = aaColor.g, aaB = aaColor.b;
+    var diffR = diffColor.r, diffG = diffColor.g, diffB = diffColor.b;
 
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
@@ -30,17 +36,17 @@ function pixelmatch(img1, img2, output, width, height, options) {
                 if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
                                    antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
-                    if (output) drawPixel(output, pos, 255, 255, 0);
+                    if (output) drawPixel(output, pos, aaR, aaG, aaB);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as red
-                    if (output) drawPixel(output, pos, 255, 0, 0);
+                    if (output) drawPixel(output, pos, diffR, diffG, diffB);
                     diff++;
                 }
 
             } else if (output) {
                 // pixels are similar; draw background as grayscale image blended with white
-                var val = blend(grayPixel(img1, pos), 0.1);
+                var val = blend(grayPixel(img1, pos), alpha);
                 drawPixel(output, pos, val, val, val);
             }
         }

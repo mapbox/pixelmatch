@@ -6,10 +6,19 @@ var PNG = require('pngjs').PNG,
     path = require('path'),
     match = require('../.');
 
-diffTest('1a', '1b', '1diff', 0.05, false, 143);
-diffTest('2a', '2b', '2diff', 0.05, false, 12439);
-diffTest('3a', '3b', '3diff', 0.05, false, 212);
-diffTest('4a', '4b', '4diff', 0.05, false, 36089);
+var defaultOptions = {threshold: 0.05, includeAA: false};
+
+diffTest('1a', '1b', '1diff', defaultOptions, 143);
+diffTest('2a', '2b', '2diff', defaultOptions, 12439);
+diffTest('3a', '3b', '3diff', defaultOptions, 212);
+diffTest('4a', '4b', '4diff', defaultOptions, 36089);
+diffTest('5a', '5b', '5diff', {
+    threshold: 0.05,
+    includeAA: false,
+    alpha: 0.5,
+    aaColor: {r: 0, g: 192, b: 0},
+    diffColor: {r: 255, g: 0, b: 255}
+}, 12439);
 
 test('throws error if image sizes do not match', function (t) {
     t.throws(function () {
@@ -18,9 +27,9 @@ test('throws error if image sizes do not match', function (t) {
     t.end();
 });
 
-function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMismatch) {
+function diffTest(imgPath1, imgPath2, diffPath, options, expectedMismatch) {
     var name = 'comparing ' + imgPath1 + ' to ' + imgPath2 +
-            ', threshold: ' + threshold + ', includeAA: ' + includeAA;
+            ', options: ' + JSON.stringify(options);
 
     test(name, function (t) {
         var img1 = readImage(imgPath1, function () {
@@ -28,15 +37,9 @@ function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMi
                 var expectedDiff = readImage(diffPath, function () {
                     var diff = new PNG({width: img1.width, height: img1.height});
 
-                    var mismatch = match(img1.data, img2.data, diff.data, diff.width, diff.height, {
-                        threshold: threshold,
-                        includeAA: includeAA
-                    });
+                    var mismatch = match(img1.data, img2.data, diff.data, diff.width, diff.height, options);
 
-                    var mismatch2 = match(img1.data, img2.data, null, diff.width, diff.height, {
-                        threshold: threshold,
-                        includeAA: includeAA
-                    });
+                    var mismatch2 = match(img1.data, img2.data, null, diff.width, diff.height, options);
 
                     t.same(diff.data, expectedDiff.data, 'diff image');
                     t.same(mismatch, expectedMismatch, 'number of mismatched pixels');
