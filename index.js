@@ -75,7 +75,7 @@ function antialiased(img, x1, y1, width, height, img2) {
             var delta = colorDelta(img, img, pos, (y * width + x) * 4, true);
 
             // count the number of equal, darker and brighter adjacent pixels
-            if (delta === 0) zeroes++;
+            if (Math.abs(delta) <= 0) zeroes++;
             else if (delta < 0) negatives++;
             else if (delta > 0) positives++;
 
