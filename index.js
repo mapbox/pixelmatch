@@ -53,7 +53,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
 // check if a pixel is likely a part of anti-aliasing;
 // based on "Anti-aliased Pixel and Intensity Slope Detector" paper by V. Vysniauskas, 2009
 
-function antialiased(img, x1, y1, width, height, img2) {
+function antialiased(img, x1, y1, width, height, img2, brightnessPixel) {
     var x0 = Math.max(x1 - 1, 0),
         y0 = Math.max(y1 - 1, 0),
         x2 = Math.min(x1 + 1, width - 1),
@@ -73,11 +73,13 @@ function antialiased(img, x1, y1, width, height, img2) {
 
             // brightness delta between the center pixel and adjacent one
             var delta = colorDelta(img, img, pos, (y * width + x) * 4, true);
+            // used only when comparing the darkest and the brightest pixels
+            const brightnessTolerance = !img2 ? (brightnessPixel | 0) : 0;
 
             // count the number of equal, darker and brighter adjacent pixels
-            if (Math.abs(delta) <= 0) zeroes++;
-            else if (delta < 0) negatives++;
-            else if (delta > 0) positives++;
+            if (Math.abs(delta) <= brightnessTolerance) zeroes++;
+            else if (delta < brightnessTolerance) negatives++;
+            else if (delta > brightnessTolerance) positives++;
 
             // if found more than 2 equal siblings, it's definitely not anti-aliasing
             if (zeroes > 2) return false;
