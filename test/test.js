@@ -7,9 +7,11 @@ var PNG = require('pngjs').PNG,
     match = require('../.');
 
 diffTest('1a', '1b', '1diff', 0.05, false, 143);
-diffTest('2a', '2b', '2diff', 0.05, false, 12439);
+diffTest('2a', '2b', '2diff', 0.05, false, 12437);
 diffTest('3a', '3b', '3diff', 0.05, false, 212);
-diffTest('4a', '4b', '4diff', 0.05, false, 36089);
+diffTest('4a', '4b', '4diff', 0.05, false, 36049);
+diffTest('5a', '5b', '5diff', 0.05, false, 0);
+diffTest('6a', '6b', '6diff', 0.05, false, 51);
 
 test('throws error if image sizes do not match', function (t) {
     t.throws(function () {
