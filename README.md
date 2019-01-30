@@ -23,7 +23,7 @@ var numDiffPixels = pixelmatch(img1, img2, diff, 800, 600, {threshold: 0.1});
 Implements ideas from the following papers:
 
 - [Measuring perceived color difference using YIQ NTSC transmission color space in mobile applications](http://www.progmat.uaem.mx:8080/artVol2Num2/Articulo3Vol2Num2.pdf) (2010, Yuriy Kotsarenko, Fernando Ramos)
-- [Anti-aliased pixel and intensity slope detector](http://www.ee.ktu.lt/journal/2009/7/25_ISSN_1392-1215_Anti-aliased%20Pxel%20and%20Intensity%20Slope%20Detector.pdf) (2009, Vytautas Vyšniauskas)
+- [Anti-aliased pixel and intensity slope detector](https://www.researchgate.net/publication/234126755_Anti-aliased_Pixel_and_Intensity_Slope_Detector) (2009, Vytautas Vyšniauskas)
 
 ### Example output
 
