@@ -40,7 +40,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
             } else if (output) {
                 // pixels are similar; draw background as grayscale image blended with white
-                var val = blend(grayPixel(img1, pos), 0.1);
+                var val = grayPixel(img1, pos, 0.1);
                 drawPixel(output, pos, val, val, val);
             }
         }
@@ -185,10 +185,9 @@ function drawPixel(output, pos, r, g, b) {
     output[pos + 3] = 255;
 }
 
-function grayPixel(img, i) {
-    var a = img[i + 3] / 255;
-    var r = blend(img[i + 0], a);
-    var g = blend(img[i + 1], a);
-    var b = blend(img[i + 2], a);
-    return rgb2y(r, g, b);
+function grayPixel(img, i, alpha) {
+    var r = img[i + 0];
+    var g = img[i + 1];
+    var b = img[i + 2];
+    return blend(rgb2y(r, g, b), alpha * img[i + 3] / 255);
 }
