@@ -6,6 +6,9 @@
   "bin": {
     "pixelmatch": "bin/pixelmatch"
   },
+  "files": [
+    "bin/pixelmatch"
+  ],
   "dependencies": {
     "pngjs": "^3.3.2"
   },
