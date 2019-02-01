@@ -20,9 +20,9 @@ function pixelmatch(img1, img2, output, width, height, options) {
         for (var x = 0; x < width; x++) {
 
             var pos = (y * width + x) * 4;
-            
+
             // throw error if img1 or img2 pixel data is not a number (also check isNaN because typeof NaN returns number, annoyingly!)
-            if (typeof img1[pos] !== 'number' || typeof img2[pos] !== 'number' || isNaN(img1[pos]) || isNaN(img2[data]) ) { 
+            if (typeof img1[pos] !== 'number' || typeof img2[pos] !== 'number' || isNaN(img1[pos]) || isNaN(img2[pos])) {
                 throw new Error('Invalid pixel value; expected a number. If using Canvas API, be sure to pass in the ImageData object\'s data property (as in img1.data), rather than the ImageData object itself.');
             }
 
