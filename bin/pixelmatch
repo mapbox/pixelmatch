@@ -38,5 +38,5 @@ function doneReading() {
 
     console.log('different pixels: ' + diffs);
     console.log('error: ' + (Math.round(100 * 100 * diffs / (diff.width * diff.height)) / 100) + '%');
-    process.exit(diff ? 66 : 0);
+    process.exit(diffs ? 66 : 0);
 }
