@@ -6,7 +6,7 @@ var PNG = require('pngjs').PNG,
     match = require('../.');
 
 if (process.argv.length < 5) {
-    console.log('Usage: imagematch image1.png image2.png output.png [threshold=0.005] [includeAA=false]');
+    console.log('Usage: pixelmatch image1.png image2.png output.png [threshold=0.005] [includeAA=false]');
     return;
 }
 
