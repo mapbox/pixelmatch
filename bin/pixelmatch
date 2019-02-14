@@ -36,9 +36,12 @@ function doneReading() {
     });
     console.timeEnd('match');
 
-    diff.pack().pipe(fs.createWriteStream(process.argv[4]));
+    var writeStream = diff.pack().pipe(fs.createWriteStream(process.argv[4]));
 
     console.log('different pixels: ' + diffs);
     console.log('error: ' + (Math.round(100 * 100 * diffs / (diff.width * diff.height)) / 100) + '%');
-    process.exit(diffs ? 66 : 0);
+
+    writeStream.on('close', function () {
+        process.exit(diffs ? 66 : 0);
+    })
 }
