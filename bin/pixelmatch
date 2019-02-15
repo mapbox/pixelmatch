@@ -43,5 +43,5 @@ function doneReading() {
 
     writeStream.on('close', function () {
         process.exit(diffs ? 66 : 0);
-    })
+    });
 }
