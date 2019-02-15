@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+/* eslint-disable no-process-exit */
+
 'use strict';
 
 var PNG = require('pngjs').PNG,
@@ -7,7 +9,7 @@ var PNG = require('pngjs').PNG,
 
 if (process.argv.length < 5) {
     console.log('Usage: pixelmatch image1.png image2.png output.png [threshold=0.005] [includeAA=false]');
-    return;
+    process.exit(64);
 }
 
 var threshold = isNaN(+process.argv[5]) ? undefined : +process.argv[5],
@@ -22,7 +24,7 @@ function doneReading() {
     if (img1.width !== img2.width || img1.height !== img2.height) {
         console.log('Image dimensions do not match: %dx%d vs %dx%d',
             img1.width, img1.height, img2.width, img2.height);
-        return;
+        process.exit(65);
     }
 
     var diff = new PNG({width: img1.width, height: img1.height});
@@ -34,8 +36,12 @@ function doneReading() {
     });
     console.timeEnd('match');
 
-    diff.pack().pipe(fs.createWriteStream(process.argv[4]));
+    var writeStream = diff.pack().pipe(fs.createWriteStream(process.argv[4]));
 
     console.log('different pixels: ' + diffs);
     console.log('error: ' + (Math.round(100 * 100 * diffs / (diff.width * diff.height)) / 100) + '%');
+
+    writeStream.on('close', function () {
+        process.exit(diffs ? 66 : 0);
+    });
 }
