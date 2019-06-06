@@ -58,7 +58,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
             } else if (output) {
                 // pixels are similar; draw background as grayscale image blended with white
-                var val = drawGrayPixel(img1, pos, 0.1, output);
+                drawGrayPixel(img1, pos, 0.1, output);
             }
         }
     }
