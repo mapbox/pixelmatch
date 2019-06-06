@@ -12,11 +12,11 @@ if (process.argv.length < 4) {
     process.exit(64);
 }
 
-const img1Path = process.argv[2];
-const img2Path = process.argv[3];
-const diffPath = process.argv[4];
-const threshold = isNaN(+process.argv[5]) ? undefined : +process.argv[5];
-const includeAA = process.argv[6] === 'true';
+const [,, img1Path, img2Path, diffPath, threshold, includeAA] = process.argv;
+const options = {
+    threshold: +threshold,
+    includeAA: includeAA !== undefined && includeAA !== 'false'
+};
 
 const img1 = PNG.sync.read(fs.readFileSync(img1Path));
 const img2 = PNG.sync.read(fs.readFileSync(img2Path));
@@ -31,15 +31,13 @@ if (img2.width !== width || img2.height !== height) {
 const diff = diffPath ? new PNG({width, height}) : null;
 
 console.time('matched in');
-const diffs = match(img1.data, img2.data, diff ? diff.data : null, width, height, {threshold, includeAA});
+const diffs = match(img1.data, img2.data, diff ? diff.data : null, width, height, options);
 console.timeEnd('matched in');
 
 console.log(`different pixels: ${diffs}`);
 console.log(`error: ${Math.round(100 * 100 * diffs / (width * height)) / 100}%`);
 
-const exitCode = diffs ? 66 : 0;
-
 if (diff) {
     fs.writeFileSync(diffPath, PNG.sync.write(diff));
 }
-process.exit(exitCode);
+process.exit(diffs ? 66 : 0);
