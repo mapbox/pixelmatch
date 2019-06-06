@@ -37,7 +37,7 @@ Implements ideas from the following papers:
 
 #### pixelmatch(img1, img2, output, width, height[, options])
 
-- `img1`, `img2` — Image data of the images to compare (`Buffer` or `Uint8Array`). **Note:** image dimensions must be equal.
+- `img1`, `img2` — Image data of the images to compare (`Buffer`, `Uint8Array` or `Uint8ClampedArray`). **Note:** image dimensions must be equal.
 - `output` — Image data to write the diff to, or `null` if don't need a diff image.
 - `width`, `height` — Width and height of the images. Note that _all three images_ need to have the same dimensions.
 
