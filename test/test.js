@@ -1,10 +1,10 @@
 'use strict';
 
-var PNG = require('pngjs').PNG,
-    fs = require('fs'),
-    test = require('tap').test,
-    path = require('path'),
-    match = require('../.');
+var PNG = require('pngjs').PNG;
+var fs = require('fs');
+var test = require('tape').test;
+var path = require('path');
+var match = require('../.');
 
 diffTest('1a', '1b', '1diff', 0.05, false, 143);
 diffTest('2a', '2b', '2diff', 0.05, false, 12437);
@@ -43,7 +43,7 @@ function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMi
 
                     t.same(diff.data, expectedDiff.data, 'diff image');
                     t.same(mismatch, expectedMismatch, 'number of mismatched pixels');
-                    t.same(mismatch, mismatch2, 'number of mismatched pixels');
+                    t.same(mismatch, mismatch2, 'number of mismatched pixels without diff');
 
                     t.end();
                 });
