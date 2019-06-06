@@ -12,6 +12,7 @@ diffTest('3a', '3b', '3diff', 0.05, false, 212);
 diffTest('4a', '4b', '4diff', 0.05, false, 36049);
 diffTest('5a', '5b', '5diff', 0.05, false, 0);
 diffTest('6a', '6b', '6diff', 0.05, false, 51);
+diffTest('6a', '6a', '6empty', 0, false, 0);
 
 test('throws error if image sizes do not match', function (t) {
     t.throws(function () {

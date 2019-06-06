@@ -6,6 +6,19 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
     if (img1.length !== img2.length) throw new Error('Image sizes do not match.');
 
+    var len = width * height;
+    var identical = true;
+    var a32 = new Uint32Array(img1.buffer, img1.byteOffset, len);
+    var b32 = new Uint32Array(img2.buffer, img2.byteOffset, len);
+
+    for (var i = 0; i < len; i++) {
+        if (a32[i] !== b32[i]) {
+            identical = false;
+            break;
+        }
+    }
+    if (identical) return 0;
+
     if (!options) options = {};
 
     var threshold = options.threshold === undefined ? 0.1 : options.threshold;
