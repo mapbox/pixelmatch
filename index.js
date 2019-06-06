@@ -6,6 +6,9 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
     if (img1.length !== img2.length) throw new Error('Image sizes do not match.');
 
+    if (!ArrayBuffer.isView(img1) || !ArrayBuffer.isView(img2) || (output && !ArrayBuffer.isView(output)))
+        throw new Error('Image data: Uint8Array, Uint8ClampedArray or Buffer expected.');
+
     const len = width * height;
     const a32 = new Uint32Array(img1.buffer, img1.byteOffset, len);
     const b32 = new Uint32Array(img2.buffer, img2.byteOffset, len);

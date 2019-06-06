@@ -15,9 +15,17 @@ diffTest('6a', '6b', '6diff', 0.05, false, 51);
 diffTest('6a', '6a', '6empty', 0, false, 0);
 
 test('throws error if image sizes do not match', (t) => {
-    t.throws(() => {
-        match([1, 2, 3], [1, 2, 3, 4], null, 2, 1);
-    }, /Image sizes do not match/);
+    t.throws(() => match([1, 2, 3], [1, 2, 3, 4], null, 2, 1), /Image sizes do not match/);
+    t.end();
+});
+
+test('throws error if provided wrong image data format', (t) => {
+    const re = /Image data: Uint8Array, Uint8ClampedArray or Buffer expected/;
+    const arr = new Uint8Array(4 * 20 * 20);
+    const bad = new Array(arr.length).fill(0);
+    t.throws(() => match(bad, arr, null, 20, 20), re);
+    t.throws(() => match(arr, bad, null, 20, 20), re);
+    t.throws(() => match(arr, arr, bad, 20, 20), re);
     t.end();
 });
 
