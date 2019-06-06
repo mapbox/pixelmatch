@@ -3,52 +3,43 @@
 
 'use strict';
 
-var PNG = require('pngjs').PNG;
-var fs = require('fs');
-var match = require('../.');
+const PNG = require('pngjs').PNG;
+const fs = require('fs');
+const match = require('../.');
 
 if (process.argv.length < 4) {
     console.log('Usage: imagematch image1.png image2.png [diff.png] [threshold=0.005] [includeAA=false]');
     process.exit(64);
 }
 
-var diffPath = process.argv[4];
-var threshold = isNaN(+process.argv[5]) ? undefined : +process.argv[5];
-var includeAA = process.argv[6] === 'true';
+const img1Path = process.argv[2];
+const img2Path = process.argv[3];
+const diffPath = process.argv[4];
+const threshold = isNaN(+process.argv[5]) ? undefined : +process.argv[5];
+const includeAA = process.argv[6] === 'true';
 
-var img1 = fs.createReadStream(process.argv[2]).pipe(new PNG()).on('parsed', doneReading);
-var img2 = fs.createReadStream(process.argv[3]).pipe(new PNG()).on('parsed', doneReading);
+const img1 = PNG.sync.read(fs.readFileSync(img1Path));
+const img2 = PNG.sync.read(fs.readFileSync(img2Path));
 
-function doneReading() {
-    if (!img1.data || !img2.data) return;
+const {width, height} = img1;
 
-    var width = img1.width;
-    var height = img1.height;
-
-    if (img2.width !== width || img2.height !== height) {
-        console.log('Image dimensions do not match: %dx%d vs %dx%d', width, height, img2.width, img2.height);
-        process.exit(65);
-    }
-
-    var diff = diffPath ? new PNG({width: width, height: height}) : null;
-
-    console.time('matched in');
-    var diffs = match(img1.data, img2.data, diff ? diff.data : null, width, height, {
-        threshold: threshold,
-        includeAA: includeAA
-    });
-    console.timeEnd('matched in');
-
-    console.log('different pixels: ' + diffs);
-    console.log('error: ' + (Math.round(100 * 100 * diffs / (width * height)) / 100) + '%');
-
-    var exitCode = diffs ? 66 : 0;
-
-    if (diff) {
-        diff.pack().pipe(fs.createWriteStream(diffPath)).on('close', function () {
-            process.exit(exitCode);
-        });
-    } else {
-        process.exit(exitCode);
-    }
+if (img2.width !== width || img2.height !== height) {
+    console.log(`Image dimensions do not match: ${width}x${height} vs ${img2.width}x${img2.height}`);
+    process.exit(65);
 }
+
+const diff = diffPath ? new PNG({width, height}) : null;
+
+console.time('matched in');
+const diffs = match(img1.data, img2.data, diff ? diff.data : null, width, height, {threshold, includeAA});
+console.timeEnd('matched in');
+
+console.log(`different pixels: ${diffs}`);
+console.log(`error: ${Math.round(100 * 100 * diffs / (width * height)) / 100}%`);
+
+const exitCode = diffs ? 66 : 0;
+
+if (diff) {
+    fs.writeFileSync(diffPath, PNG.sync.write(diff));
+}
+process.exit(exitCode);

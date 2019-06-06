@@ -6,12 +6,12 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
     if (img1.length !== img2.length) throw new Error('Image sizes do not match.');
 
-    var len = width * height;
-    var identical = true;
-    var a32 = new Uint32Array(img1.buffer, img1.byteOffset, len);
-    var b32 = new Uint32Array(img2.buffer, img2.byteOffset, len);
+    const len = width * height;
+    const a32 = new Uint32Array(img1.buffer, img1.byteOffset, len);
+    const b32 = new Uint32Array(img2.buffer, img2.byteOffset, len);
+    let identical = true;
 
-    for (var i = 0; i < len; i++) {
+    for (let i = 0; i < len; i++) {
         if (a32[i] !== b32[i]) {
             identical = false;
             break;
@@ -19,34 +19,34 @@ function pixelmatch(img1, img2, output, width, height, options) {
     }
     if (identical) {
         if (output) {
-            for (i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, 0.1, output);
+            for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, 0.1, output);
         }
         return 0;
     }
 
     if (!options) options = {};
 
-    var threshold = options.threshold === undefined ? 0.1 : options.threshold;
+    const threshold = options.threshold === undefined ? 0.1 : options.threshold;
 
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
-    var maxDelta = 35215 * threshold * threshold;
-    var diff = 0;
+    const maxDelta = 35215 * threshold * threshold;
+    let diff = 0;
 
     // compare each pixel of one image against the other one
-    for (var y = 0; y < height; y++) {
-        for (var x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
 
-            var pos = (y * width + x) * 4;
+            const pos = (y * width + x) * 4;
 
             // squared YUV distance between colors at this pixel position
-            var delta = colorDelta(img1, img2, pos, pos);
+            const delta = colorDelta(img1, img2, pos, pos);
 
             // the color difference is above the threshold
             if (delta > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
                 if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
-                                   antialiased(img2, x, y, width, height, img1))) {
+                                           antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     if (output) drawPixel(output, pos, 255, 255, 0);
 
@@ -71,23 +71,23 @@ function pixelmatch(img1, img2, output, width, height, options) {
 // based on "Anti-aliased Pixel and Intensity Slope Detector" paper by V. Vysniauskas, 2009
 
 function antialiased(img, x1, y1, width, height, img2) {
-    var x0 = Math.max(x1 - 1, 0);
-    var y0 = Math.max(y1 - 1, 0);
-    var x2 = Math.min(x1 + 1, width - 1);
-    var y2 = Math.min(y1 + 1, height - 1);
-    var pos = (y1 * width + x1) * 4;
-    var zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
-    var min = 0;
-    var max = 0;
-    var minX, minY, maxX, maxY;
+    const x0 = Math.max(x1 - 1, 0);
+    const y0 = Math.max(y1 - 1, 0);
+    const x2 = Math.min(x1 + 1, width - 1);
+    const y2 = Math.min(y1 + 1, height - 1);
+    const pos = (y1 * width + x1) * 4;
+    let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
+    let min = 0;
+    let max = 0;
+    let minX, minY, maxX, maxY;
 
     // go through 8 adjacent pixels
-    for (var x = x0; x <= x2; x++) {
-        for (var y = y0; y <= y2; y++) {
+    for (let x = x0; x <= x2; x++) {
+        for (let y = y0; y <= y2; y++) {
             if (x === x1 && y === y1) continue;
 
             // brightness delta between the center pixel and adjacent one
-            var delta = colorDelta(img, img, pos, (y * width + x) * 4, true);
+            const delta = colorDelta(img, img, pos, (y * width + x) * 4, true);
 
             // count the number of equal, darker and brighter adjacent pixels
             if (delta === 0) {
@@ -121,19 +121,19 @@ function antialiased(img, x1, y1, width, height, img2) {
 
 // check if a pixel has 3+ adjacent pixels of the same color.
 function hasManySiblings(img, x1, y1, width, height) {
-    var x0 = Math.max(x1 - 1, 0);
-    var y0 = Math.max(y1 - 1, 0);
-    var x2 = Math.min(x1 + 1, width - 1);
-    var y2 = Math.min(y1 + 1, height - 1);
-    var pos = (y1 * width + x1) * 4;
-    var zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
+    const x0 = Math.max(x1 - 1, 0);
+    const y0 = Math.max(y1 - 1, 0);
+    const x2 = Math.min(x1 + 1, width - 1);
+    const y2 = Math.min(y1 + 1, height - 1);
+    const pos = (y1 * width + x1) * 4;
+    let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
 
     // go through 8 adjacent pixels
-    for (var x = x0; x <= x2; x++) {
-        for (var y = y0; y <= y2; y++) {
+    for (let x = x0; x <= x2; x++) {
+        for (let y = y0; y <= y2; y++) {
             if (x === x1 && y === y1) continue;
 
-            var pos2 = (y * width + x) * 4;
+            const pos2 = (y * width + x) * 4;
             if (img[pos] === img[pos2] &&
                 img[pos + 1] === img[pos2 + 1] &&
                 img[pos + 2] === img[pos2 + 2] &&
@@ -150,15 +150,15 @@ function hasManySiblings(img, x1, y1, width, height) {
 // using YIQ NTSC transmission color space in mobile applications" by Y. Kotsarenko and F. Ramos
 
 function colorDelta(img1, img2, k, m, yOnly) {
-    var r1 = img1[k + 0];
-    var g1 = img1[k + 1];
-    var b1 = img1[k + 2];
-    var a1 = img1[k + 3];
+    let r1 = img1[k + 0];
+    let g1 = img1[k + 1];
+    let b1 = img1[k + 2];
+    let a1 = img1[k + 3];
 
-    var r2 = img2[m + 0];
-    var g2 = img2[m + 1];
-    var b2 = img2[m + 2];
-    var a2 = img2[m + 3];
+    let r2 = img2[m + 0];
+    let g2 = img2[m + 1];
+    let b2 = img2[m + 2];
+    let a2 = img2[m + 3];
 
     if (a1 === a2 && r1 === r2 && g1 === g2 && b1 === b2) return 0;
 
@@ -176,12 +176,12 @@ function colorDelta(img1, img2, k, m, yOnly) {
         b2 = blend(b2, a2);
     }
 
-    var y = rgb2y(r1, g1, b1) - rgb2y(r2, g2, b2);
+    const y = rgb2y(r1, g1, b1) - rgb2y(r2, g2, b2);
 
     if (yOnly) return y; // brightness difference only
 
-    var i = rgb2i(r1, g1, b1) - rgb2i(r2, g2, b2),
-        q = rgb2q(r1, g1, b1) - rgb2q(r2, g2, b2);
+    const i = rgb2i(r1, g1, b1) - rgb2i(r2, g2, b2);
+    const q = rgb2q(r1, g1, b1) - rgb2q(r2, g2, b2);
 
     return 0.5053 * y * y + 0.299 * i * i + 0.1957 * q * q;
 }
@@ -203,9 +203,9 @@ function drawPixel(output, pos, r, g, b) {
 }
 
 function drawGrayPixel(img, i, alpha, output) {
-    var r = img[i + 0];
-    var g = img[i + 1];
-    var b = img[i + 2];
-    var val = blend(rgb2y(r, g, b), alpha * img[i + 3] / 255);
+    const r = img[i + 0];
+    const g = img[i + 1];
+    const b = img[i + 2];
+    const val = blend(rgb2y(r, g, b), alpha * img[i + 3] / 255);
     drawPixel(output, i, val, val, val);
 }

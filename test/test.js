@@ -1,10 +1,10 @@
 'use strict';
 
-var PNG = require('pngjs').PNG;
-var fs = require('fs');
-var test = require('tape').test;
-var path = require('path');
-var match = require('../.');
+const PNG = require('pngjs').PNG;
+const fs = require('fs');
+const test = require('tape').test;
+const path = require('path');
+const match = require('../.');
 
 diffTest('1a', '1b', '1diff', 0.05, false, 143);
 diffTest('2a', '2b', '2diff', 0.05, false, 12437);
@@ -14,44 +14,34 @@ diffTest('5a', '5b', '5diff', 0.05, false, 0);
 diffTest('6a', '6b', '6diff', 0.05, false, 51);
 diffTest('6a', '6a', '6empty', 0, false, 0);
 
-test('throws error if image sizes do not match', function (t) {
-    t.throws(function () {
+test('throws error if image sizes do not match', (t) => {
+    t.throws(() => {
         match([1, 2, 3], [1, 2, 3, 4], null, 2, 1);
     }, /Image sizes do not match/);
     t.end();
 });
 
 function diffTest(imgPath1, imgPath2, diffPath, threshold, includeAA, expectedMismatch) {
-    var name = 'comparing ' + imgPath1 + ' to ' + imgPath2 +
-            ', threshold: ' + threshold + ', includeAA: ' + includeAA;
+    const name = `comparing ${imgPath1} to ${imgPath2}, threshold: ${threshold}, includeAA: ${includeAA}`;
 
-    test(name, function (t) {
-        var img1 = readImage(imgPath1, function () {
-            var img2 = readImage(imgPath2, function () {
-                var expectedDiff = readImage(diffPath, function () {
-                    var diff = new PNG({width: img1.width, height: img1.height});
+    test(name, (t) => {
+        const img1 = readImage(imgPath1);
+        const img2 = readImage(imgPath2);
+        const {width, height} = img1;
+        const expectedDiff = readImage(diffPath);
+        const diff = new PNG({width, height});
 
-                    var mismatch = match(img1.data, img2.data, diff.data, diff.width, diff.height, {
-                        threshold: threshold,
-                        includeAA: includeAA
-                    });
+        const mismatch = match(img1.data, img2.data, diff.data, width, height, {threshold, includeAA});
+        const mismatch2 = match(img1.data, img2.data, null, width, height, {threshold, includeAA});
 
-                    var mismatch2 = match(img1.data, img2.data, null, diff.width, diff.height, {
-                        threshold: threshold,
-                        includeAA: includeAA
-                    });
+        t.same(diff.data, expectedDiff.data, 'diff image');
+        t.same(mismatch, expectedMismatch, 'number of mismatched pixels');
+        t.same(mismatch, mismatch2, 'number of mismatched pixels without diff');
 
-                    t.same(diff.data, expectedDiff.data, 'diff image');
-                    t.same(mismatch, expectedMismatch, 'number of mismatched pixels');
-                    t.same(mismatch, mismatch2, 'number of mismatched pixels without diff');
-
-                    t.end();
-                });
-            });
-        });
+        t.end();
     });
 }
 
-function readImage(name, done) {
-    return fs.createReadStream(path.join(__dirname, '/fixtures/' + name + '.png')).pipe(new PNG()).on('parsed', done);
+function readImage(name) {
+    return PNG.sync.read(fs.readFileSync(path.join(__dirname, `fixtures/${name}.png`)));
 }

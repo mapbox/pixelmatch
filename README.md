@@ -1,7 +1,6 @@
 ## pixelmatch
 
 [![Build Status](https://travis-ci.org/mapbox/pixelmatch.svg?branch=master)](https://travis-ci.org/mapbox/pixelmatch)
-[![Coverage Status](https://coveralls.io/repos/mapbox/pixelmatch/badge.svg?branch=master&service=github)](https://coveralls.io/github/mapbox/pixelmatch?branch=master)
 [![](https://img.shields.io/badge/simply-awesome-brightgreen.svg)](https://github.com/mourner/projects)
 
 The smallest, simplest and fastest JavaScript pixel-level image comparison library,
@@ -17,7 +16,7 @@ has **no dependencies**, and works on **raw arrays** of image data,
 so it's **blazing fast** and can be used in **any environment** (Node or browsers).
 
 ```js
-var numDiffPixels = pixelmatch(img1, img2, diff, 800, 600, {threshold: 0.1});
+const numDiffPixels = pixelmatch(img1, img2, diff, 800, 600, {threshold: 0.1});
 ```
 
 Implements ideas from the following papers:
@@ -61,30 +60,26 @@ pixelmatch image1.png image2.png output.png 0.1
 #### Node.js
 
 ```js
-var fs = require('fs'),
-    PNG = require('pngjs').PNG,
-    pixelmatch = require('pixelmatch');
+const fs = require('fs');
+const PNG = require('pngjs').PNG,
+const pixelmatch = require('pixelmatch');
 
-var img1 = fs.createReadStream('img1.png').pipe(new PNG()).on('parsed', doneReading),
-    img2 = fs.createReadStream('img2.png').pipe(new PNG()).on('parsed', doneReading),
-    filesRead = 0;
+const img1 = PNG.sync.read(fs.readFileSync('img1.png'));
+const img2 = PNG.sync.read(fs.readFileSync('img2.png'));
+const {width, height} = img1;
+const diff = new PNG({width, height});
 
-function doneReading() {
-    if (++filesRead < 2) return;
-    var diff = new PNG({width: img1.width, height: img1.height});
+pixelmatch(img1.data, img2.data, diff.data, img1.width, img1.height, {threshold: 0.1});
 
-    pixelmatch(img1.data, img2.data, diff.data, img1.width, img1.height, {threshold: 0.1});
-
-    diff.pack().pipe(fs.createWriteStream('diff.png'));
-}
+fs.writeFileSync('diff.png', PNG.sync.write(diff));
 ```
 
 #### Browsers
 
 ```js
-var img1 = img1Ctx.getImageData(0, 0, width, height),
-    img2 = img2Ctx.getImageData(0, 0, width, height),
-    diff = diffCtx.createImageData(width, height);
+const img1 = img1Ctx.getImageData(0, 0, width, height);
+const img2 = img2Ctx.getImageData(0, 0, width, height);
+const diff = diffCtx.createImageData(width, height);
 
 pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
 
