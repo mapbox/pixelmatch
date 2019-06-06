@@ -11,8 +11,8 @@ and **perceptual color difference metrics**.
 
 Inspired by [Resemble.js](https://github.com/Huddle/Resemble.js)
 and [Blink-diff](https://github.com/yahoo/blink-diff).
-Unlike these libraries, pixelmatch is around **90 lines of code**,
-has **no dependencies**, and works on **raw arrays** of image data,
+Unlike these libraries, pixelmatch is around **150 lines of code**,
+has **no dependencies**, and works on **raw typed arrays** of image data,
 so it's **blazing fast** and can be used in **any environment** (Node or browsers).
 
 ```js
@@ -30,7 +30,7 @@ Implements ideas from the following papers:
 | --- | --- | --- |
 | ![](test/fixtures/4a.png) | ![](test/fixtures/4b.png) | ![1diff](test/fixtures/4diff.png) |
 | ![](test/fixtures/3a.png) | ![](test/fixtures/3b.png) | ![1diff](test/fixtures/3diff.png) |
-| ![](test/fixtures/1a.png) | ![](test/fixtures/1b.png) | ![1diff](test/fixtures/1diff.png) |
+| ![](test/fixtures/6a.png) | ![](test/fixtures/6b.png) | ![1diff](test/fixtures/6diff.png) |
 
 ### API
 
@@ -94,11 +94,10 @@ Install with NPM:
 npm install pixelmatch
 ```
 
-To build a browser-compatible version, clone the repository locally, then run:
+Use in the browser from a CDN:
 
-```bash
-npm install -g browserify
-browserify -s pixelmatch index.js > pixelmatch.js
+```html
+<script src="https://bundle.run/pixelmatch@4.0.2"></script>
 ```
 
 ### [Changelog](https://github.com/mapbox/pixelmatch/releases)
