@@ -2,6 +2,14 @@
 
 module.exports = pixelmatch;
 
+const defaultOptions = {
+    threshold: 0.1,
+    includeAA: false,
+    alpha: 0.1,
+    aaColor: [255, 255, 0],
+    diffColor: [255, 0, 0]
+};
+
 function pixelmatch(img1, img2, output, width, height, options) {
 
     if (img1.length !== img2.length) throw new Error('Image sizes do not match.');
@@ -27,14 +35,14 @@ function pixelmatch(img1, img2, output, width, height, options) {
         return 0;
     }
 
-    if (!options) options = {};
-
-    const threshold = options.threshold === undefined ? 0.1 : options.threshold;
+    options = Object.assign({}, defaultOptions, options);
 
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
-    const maxDelta = 35215 * threshold * threshold;
+    const maxDelta = 35215 * options.threshold * options.threshold;
     let diff = 0;
+    const [aaR, aaG, aaB] = options.aaColor;
+    const [diffR, diffG, diffB] = options.diffColor;
 
     // compare each pixel of one image against the other one
     for (let y = 0; y < height; y++) {
@@ -51,17 +59,17 @@ function pixelmatch(img1, img2, output, width, height, options) {
                 if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
                                            antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
-                    if (output) drawPixel(output, pos, 255, 255, 0);
+                    if (output) drawPixel(output, pos, aaR, aaG, aaB);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as red
-                    if (output) drawPixel(output, pos, 255, 0, 0);
+                    if (output) drawPixel(output, pos, diffR, diffG, diffB);
                     diff++;
                 }
 
             } else if (output) {
                 // pixels are similar; draw background as grayscale image blended with white
-                drawGrayPixel(img1, pos, 0.1, output);
+                drawGrayPixel(img1, pos, options.alpha, output);
             }
         }
     }

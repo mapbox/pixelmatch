@@ -44,6 +44,9 @@ Implements ideas from the following papers:
 
 - `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.1` by default.
 - `includeAA` — If `true`, disables detecting and ignoring anti-aliased pixels. `false` by default.
+- `alpha` — Blending factor of unchanged pixels in the diff output. Ranges from `0` for pure white to `1` for original brightness. `0.1` by default.
+- `aaColor` — The color of anti-aliased pixels in the diff output. `[255, 255, 0]` by default.
+- `diffColor` — The color of differing pixels in the diff output. `[255, 0, 0]` by default.
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 
