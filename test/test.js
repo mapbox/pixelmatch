@@ -22,17 +22,22 @@ diffTest('6a', '6b', '6diff', options, 51);
 diffTest('6a', '6a', '6empty', {threshold: 0}, 0);
 
 test('throws error if image sizes do not match', (t) => {
-    t.throws(() => match([1, 2, 3], [1, 2, 3, 4], null, 2, 1), /Image sizes do not match/);
+    t.throws(() => match(new Uint8Array(8), new Uint8Array(9), null, 2, 1), 'Image sizes do not match');
+    t.end();
+});
+
+test('throws error if image sizes do not match width and height', (t) => {
+    t.throws(() => match(new Uint8Array(9), new Uint8Array(9), null, 2, 1), 'Image data size does not match width/height');
     t.end();
 });
 
 test('throws error if provided wrong image data format', (t) => {
-    const re = /Image data: Uint8Array, Uint8ClampedArray or Buffer expected/;
+    const err = 'Image data: Uint8Array, Uint8ClampedArray or Buffer expected';
     const arr = new Uint8Array(4 * 20 * 20);
     const bad = new Array(arr.length).fill(0);
-    t.throws(() => match(bad, arr, null, 20, 20), re);
-    t.throws(() => match(arr, bad, null, 20, 20), re);
-    t.throws(() => match(arr, arr, bad, 20, 20), re);
+    t.throws(() => match(bad, arr, null, 20, 20), err);
+    t.throws(() => match(arr, bad, null, 20, 20), err);
+    t.throws(() => match(arr, arr, bad, 20, 20), err);
     t.end();
 });
 
@@ -52,10 +57,10 @@ function diffTest(imgPath1, imgPath2, diffPath, options, expectedMismatch) {
             writeImage(diffPath, diff);
         } else {
             const expectedDiff = readImage(diffPath);
-            t.same(diff.data, expectedDiff.data, 'diff image');
+            t.ok(diff.data.equals(expectedDiff.data), 'diff image');
         }
-        t.same(mismatch, expectedMismatch, 'number of mismatched pixels');
-        t.same(mismatch, mismatch2, 'number of mismatched pixels without diff');
+        t.equal(mismatch, expectedMismatch, 'number of mismatched pixels');
+        t.equal(mismatch, mismatch2, 'number of mismatched pixels without diff');
 
         t.end();
     });

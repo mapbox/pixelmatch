@@ -12,10 +12,13 @@ const defaultOptions = {
 
 function pixelmatch(img1, img2, output, width, height, options) {
 
-    if (img1.length !== img2.length) throw new Error('Image sizes do not match.');
-
-    if (!ArrayBuffer.isView(img1) || !ArrayBuffer.isView(img2) || (output && !ArrayBuffer.isView(output)))
+    if (!isPixelData(img1) || !isPixelData(img2) || (output && !isPixelData(output)))
         throw new Error('Image data: Uint8Array, Uint8ClampedArray or Buffer expected.');
+
+    if (img1.length !== img2.length || (output && output.length !== img1.length))
+        throw new Error('Image sizes do not match.');
+
+    if (img1.length !== width * height * 4) throw new Error('Image data size does not match width/height.');
 
     options = Object.assign({}, defaultOptions, options);
 
@@ -75,6 +78,10 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
     // return the number of different pixels
     return diff;
+}
+
+function isPixelData(arr) {
+    return arr instanceof Uint8Array || arr instanceof Uint8ClampedArray;
 }
 
 // check if a pixel is likely a part of anti-aliasing;
