@@ -1,4 +1,4 @@
-## pixelmatch
+# pixelmatch
 
 [![Build Status](https://travis-ci.org/mapbox/pixelmatch.svg?branch=master)](https://travis-ci.org/mapbox/pixelmatch)
 [![](https://img.shields.io/badge/simply-awesome-brightgreen.svg)](https://github.com/mourner/projects)
@@ -24,7 +24,9 @@ Implements ideas from the following papers:
 - [Measuring perceived color difference using YIQ NTSC transmission color space in mobile applications](http://www.progmat.uaem.mx:8080/artVol2Num2/Articulo3Vol2Num2.pdf) (2010, Yuriy Kotsarenko, Fernando Ramos)
 - [Anti-aliased pixel and intensity slope detector](https://www.researchgate.net/publication/234126755_Anti-aliased_Pixel_and_Intensity_Slope_Detector) (2009, Vytautas Vyšniauskas)
 
-### Example output
+## [Demo](https://observablehq.com/@mourner/pixelmatch-demo)
+
+## Example output
 
 | expected | actual | diff |
 | --- | --- | --- |
@@ -32,9 +34,9 @@ Implements ideas from the following papers:
 | ![](test/fixtures/3a.png) | ![](test/fixtures/3b.png) | ![1diff](test/fixtures/3diff.png) |
 | ![](test/fixtures/6a.png) | ![](test/fixtures/6b.png) | ![1diff](test/fixtures/6diff.png) |
 
-### API
+## API
 
-#### pixelmatch(img1, img2, output, width, height[, options])
+### pixelmatch(img1, img2, output, width, height[, options])
 
 - `img1`, `img2` — Image data of the images to compare (`Buffer`, `Uint8Array` or `Uint8ClampedArray`). **Note:** image dimensions must be equal.
 - `output` — Image data to write the diff to, or `null` if don't need a diff image.
@@ -50,7 +52,7 @@ Implements ideas from the following papers:
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 
-### Command line
+## Command line
 
 Pixelmatch comes with a binary that works with PNG images:
 
@@ -58,9 +60,9 @@ Pixelmatch comes with a binary that works with PNG images:
 pixelmatch image1.png image2.png output.png 0.1
 ```
 
-### Example usage
+## Example usage
 
-#### Node.js
+### Node.js
 
 ```js
 const fs = require('fs');
@@ -77,7 +79,7 @@ pixelmatch(img1.data, img2.data, diff.data, img1.width, img1.height, {threshold:
 fs.writeFileSync('diff.png', PNG.sync.write(diff));
 ```
 
-#### Browsers
+### Browsers
 
 ```js
 const img1 = img1Ctx.getImageData(0, 0, width, height);
@@ -89,7 +91,7 @@ pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
 diffCtx.putImageData(diff, 0, 0);
 ```
 
-### Install
+## Install
 
 Install with NPM:
 
@@ -103,4 +105,4 @@ Use in the browser from a CDN:
 <script src="https://bundle.run/pixelmatch@5.0.1"></script>
 ```
 
-### [Changelog](https://github.com/mapbox/pixelmatch/releases)
+## [Changelog](https://github.com/mapbox/pixelmatch/releases)
