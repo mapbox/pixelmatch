@@ -3,11 +3,11 @@
 module.exports = pixelmatch;
 
 const defaultOptions = {
-    threshold: 0.1,
-    includeAA: false,
-    alpha: 0.1,
-    aaColor: [255, 255, 0],
-    diffColor: [255, 0, 0]
+    threshold: 0.1,         // matching threshold (0 to 1); smaller is more sensitive
+    includeAA: false,       // whether to skip anti-aliasing detection
+    alpha: 0.1,             // opacity of original image in diff ouput
+    aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
+    diffColor: [255, 0, 0]  // color of different pixels in diff output
 };
 
 function pixelmatch(img1, img2, output, width, height, options) {
@@ -17,29 +17,28 @@ function pixelmatch(img1, img2, output, width, height, options) {
     if (!ArrayBuffer.isView(img1) || !ArrayBuffer.isView(img2) || (output && !ArrayBuffer.isView(output)))
         throw new Error('Image data: Uint8Array, Uint8ClampedArray or Buffer expected.');
 
+    options = Object.assign({}, defaultOptions, options);
+
+    // check if images are identical
     const len = width * height;
     const a32 = new Uint32Array(img1.buffer, img1.byteOffset, len);
     const b32 = new Uint32Array(img2.buffer, img2.byteOffset, len);
     let identical = true;
 
     for (let i = 0; i < len; i++) {
-        if (a32[i] !== b32[i]) {
-            identical = false;
-            break;
-        }
+        if (a32[i] !== b32[i]) { identical = false; break; }
     }
-    if (identical) {
+    if (identical) { // fast path if identical
         if (output) {
-            for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, 0.1, output);
+            for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, options.alpha, output);
         }
         return 0;
     }
 
-    options = Object.assign({}, defaultOptions, options);
-
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
     const maxDelta = 35215 * options.threshold * options.threshold;
+
     let diff = 0;
     const [aaR, aaG, aaB] = options.aaColor;
     const [diffR, diffG, diffB] = options.diffColor;
