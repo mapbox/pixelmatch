@@ -81,7 +81,8 @@ function pixelmatch(img1, img2, output, width, height, options) {
 }
 
 function isPixelData(arr) {
-    return arr instanceof Uint8Array || arr instanceof Uint8ClampedArray;
+    // work around instanceof Uint8Array not working properly in some Jest environments
+    return ArrayBuffer.isView(arr) && arr.constructor.BYTES_PER_ELEMENT === 1;
 }
 
 // check if a pixel is likely a part of anti-aliasing;
