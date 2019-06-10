@@ -47,8 +47,8 @@ Implements ideas from the following papers:
 - `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.1` by default.
 - `includeAA` — If `true`, disables detecting and ignoring anti-aliased pixels. `false` by default.
 - `alpha` — Blending factor of unchanged pixels in the diff output. Ranges from `0` for pure white to `1` for original brightness. `0.1` by default.
-- `aaColor` — The color of anti-aliased pixels in the diff output. `[255, 255, 0]` by default.
-- `diffColor` — The color of differing pixels in the diff output. `[255, 0, 0]` by default.
+- `aaColor` — The color of anti-aliased pixels in the diff output in `[R, G, B]` format. `[255, 255, 0]` by default.
+- `diffColor` — The color of differing pixels in the diff output in `[R, G, B]` format. `[255, 0, 0]` by default.
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 
@@ -74,7 +74,7 @@ const img2 = PNG.sync.read(fs.readFileSync('img2.png'));
 const {width, height} = img1;
 const diff = new PNG({width, height});
 
-pixelmatch(img1.data, img2.data, diff.data, img1.width, img1.height, {threshold: 0.1});
+pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
 
 fs.writeFileSync('diff.png', PNG.sync.write(diff));
 ```
@@ -82,13 +82,13 @@ fs.writeFileSync('diff.png', PNG.sync.write(diff));
 ### Browsers
 
 ```js
-const img1 = img1Ctx.getImageData(0, 0, width, height);
-const img2 = img2Ctx.getImageData(0, 0, width, height);
-const diff = diffCtx.createImageData(width, height);
+const img1 = img1Context.getImageData(0, 0, width, height);
+const img2 = img2Context.getImageData(0, 0, width, height);
+const diff = diffContext.createImageData(width, height);
 
 pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
 
-diffCtx.putImageData(diff, 0, 0);
+diffContext.putImageData(diff, 0, 0);
 ```
 
 ## Install
@@ -102,7 +102,7 @@ npm install pixelmatch
 Use in the browser from a CDN:
 
 ```html
-<script src="https://bundle.run/pixelmatch@5.0.1"></script>
+<script src="https://bundle.run/pixelmatch@5.0.2"></script>
 ```
 
 ## [Changelog](https://github.com/mapbox/pixelmatch/releases)
