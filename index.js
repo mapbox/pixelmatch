@@ -7,7 +7,9 @@ const defaultOptions = {
     includeAA: false,       // whether to skip anti-aliasing detection
     alpha: 0.1,             // opacity of original image in diff ouput
     aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
-    diffColor: [255, 0, 0]  // color of different pixels in diff output
+    diffColor: [255, 0, 0], // color of different pixels in diff output
+    erosion: false,            // whether an erosion morphological operation should be applied (requires output array)
+    erodedColor: [255, 200, 0] // color of eroded pixels in diff output
 };
 
 function pixelmatch(img1, img2, output, width, height, options) {
@@ -45,6 +47,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
     let diff = 0;
     const [aaR, aaG, aaB] = options.aaColor;
     const [diffR, diffG, diffB] = options.diffColor;
+    const [erodeR, erodeG, erodeB] = options.erodedColor;
 
     // compare each pixel of one image against the other one
     for (let y = 0; y < height; y++) {
@@ -72,6 +75,44 @@ function pixelmatch(img1, img2, output, width, height, options) {
             } else if (output) {
                 // pixels are similar; draw background as grayscale image blended with white
                 drawGrayPixel(img1, pos, options.alpha, output);
+            }
+        }
+    }
+
+    if (options.erosion) {
+
+        if (!output) {
+            throw new Error('Erosion requires output image to be provided');
+        }
+
+        diff = 0;
+        const stride = width * 4;
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const pos = (y * width + x) * 4;
+
+                if (!isSolidPixel(output, pos, options)) continue;
+
+                const left = x === 0;
+                const right = x === width - 1;
+                const top = y === 0;
+                const bottom = y === height - 1;
+                const solidNeighboors = (
+                    (top || left || isSolidPixel(output, pos - stride - 4, options)) &&
+                    (top || isSolidPixel(output, pos - stride, options)) &&
+                    (top || right || isSolidPixel(output, pos - stride + 4, options)) &&
+                    (left || isSolidPixel(output, pos - 4, options)) &&
+                    (right || isSolidPixel(output, pos + 4, options)) &&
+                    (bottom || left || isSolidPixel(output, pos + stride - 4, options)) &&
+                    (bottom || isSolidPixel(output, pos + stride, options)) &&
+                    (bottom || right || isSolidPixel(output, pos + stride + 4, options))
+                );
+
+                if (solidNeighboors) {
+                    diff++;
+                } else {
+                    drawPixel(output, pos, erodeR, erodeG, erodeB);
+                }
             }
         }
     }
@@ -226,4 +267,16 @@ function drawGrayPixel(img, i, alpha, output) {
     const b = img[i + 2];
     const val = blend(rgb2y(r, g, b), alpha * img[i + 3] / 255);
     drawPixel(output, i, val, val, val);
+}
+
+function isSolidPixel(img, k, options) {
+    const r = img[k + 0];
+    const g = img[k + 1];
+    const b = img[k + 2];
+
+    const [diffR, diffG, diffB] = options.diffColor;
+    const [erodeR, erodeG, erodeB] = options.erodedColor;
+
+    return (r === diffR && g === diffG && b === diffB) ||
+        (r === erodeR && g === erodeG && b === erodeB);
 }
