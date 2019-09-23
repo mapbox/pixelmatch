@@ -7,7 +7,8 @@ const defaultOptions = {
     includeAA: false,       // whether to skip anti-aliasing detection
     alpha: 0.1,             // opacity of original image in diff ouput
     aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
-    diffColor: [255, 0, 0]  // color of different pixels in diff output
+    diffColor: [255, 0, 0],  // color of different pixels in diff output
+    diffMask: false         // draw the diff over a transparent background (a mask)
 };
 
 function pixelmatch(img1, img2, output, width, height, options) {
@@ -32,7 +33,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
         if (a32[i] !== b32[i]) { identical = false; break; }
     }
     if (identical) { // fast path if identical
-        if (output) {
+        if (output && !options.diffMask) {
             for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, options.alpha, output);
         }
         return 0;
@@ -61,7 +62,8 @@ function pixelmatch(img1, img2, output, width, height, options) {
                 if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
                                            antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
-                    if (output) drawPixel(output, pos, aaR, aaG, aaB);
+                    // note that we do not include such pixels in a mask
+                    if (output && !options.diffMask) drawPixel(output, pos, aaR, aaG, aaB);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as red
@@ -71,7 +73,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
             } else if (output) {
                 // pixels are similar; draw background as grayscale image blended with white
-                drawGrayPixel(img1, pos, options.alpha, output);
+                if (!options.diffMask) drawGrayPixel(img1, pos, options.alpha, output);
             }
         }
     }

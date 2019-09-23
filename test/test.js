@@ -9,6 +9,8 @@ const match = require('../.');
 const options = {threshold: 0.05};
 
 diffTest('1a', '1b', '1diff', options, 143);
+diffTest('1a', '1b', '1diffmask', {threshold: 0.05, includeAA: false, diffMask: true}, 143);
+diffTest('1a', '1a', '1emptydiffmask', {threshold: 0, diffMask: true}, 0);
 diffTest('2a', '2b', '2diff', {
     threshold: 0.05,
     alpha: 0.5,
