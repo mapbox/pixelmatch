@@ -13,9 +13,9 @@
     "pngjs": "^3.4.0"
   },
   "devDependencies": {
-    "eslint": "^5.16.0",
+    "eslint": "^6.4.0",
     "eslint-config-mourner": "^3.0.0",
-    "tape": "^4.10.2"
+    "tape": "^4.11.0"
   },
   "scripts": {
     "pretest": "eslint index.js bin/pixelmatch test/test.js",
