@@ -103,7 +103,7 @@ npm install pixelmatch
 Use in the browser from a CDN:
 
 ```html
-<script src="https://bundle.run/pixelmatch@5.0.2"></script>
+<script src="https://bundle.run/pixelmatch"></script>
 ```
 
 ## [Changelog](https://github.com/mapbox/pixelmatch/releases)
