@@ -14,7 +14,7 @@ if (process.argv.length < 4) {
 
 const [,, img1Path, img2Path, diffPath, threshold, includeAA] = process.argv;
 const options = {
-    threshold: +threshold,
+    threshold: threshold ? +threshold : 0.005,
     includeAA: includeAA !== undefined && includeAA !== 'false'
 };
 
