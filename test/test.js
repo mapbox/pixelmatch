@@ -4,7 +4,8 @@ const PNG = require('pngjs').PNG;
 const fs = require('fs');
 const test = require('tape').test;
 const path = require('path');
-const match = require('../.');
+// const match = require('../.');
+const {match} = require('../dist/index').default;
 
 const options = {threshold: 0.05};
 
@@ -72,5 +73,5 @@ function readImage(name) {
     return PNG.sync.read(fs.readFileSync(path.join(__dirname, `fixtures/${name}.png`)));
 }
 function writeImage(name, image) {
-    fs.writeFileSync(path.join(__dirname, `fixtures/${name}.png`), PNG.sync.write(image));
+    fs.writeFileSync(path.join(__dirname, `outputs/${name}.png`), PNG.sync.write(image));
 }

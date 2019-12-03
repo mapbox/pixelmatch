@@ -68,7 +68,7 @@ pixelmatch image1.png image2.png output.png 0.1
 ```js
 const fs = require('fs');
 const PNG = require('pngjs').PNG;
-const pixelmatch = require('pixelmatch');
+const { pixelmatch } = require('pixelmatch').default;
 
 const img1 = PNG.sync.read(fs.readFileSync('img1.png'));
 const img2 = PNG.sync.read(fs.readFileSync('img2.png'));
