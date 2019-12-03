@@ -5,7 +5,7 @@ const fs = require('fs');
 const test = require('tape').test;
 const path = require('path');
 // const match = require('../.');
-const {match} = require('../dist/index').default;
+const {pixelmatch: match} = require('../dist/index').default;
 
 const options = {threshold: 0.05};
 
