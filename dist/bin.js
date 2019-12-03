@@ -25,7 +25,7 @@ if (img2.width !== width || img2.height !== height) {
 }
 var diff = diffPath ? new pngjs_1.PNG({ width: width, height: height }) : null;
 console.time('matched in');
-var diffs = index_1.default.match(img1.data, img2.data, diff ? diff.data : null, width, height, options);
+var diffs = index_1.default.pixelmatch(img1.data, img2.data, diff ? diff.data : null, width, height, options);
 console.timeEnd('matched in');
 console.log("different pixels: " + diffs);
 console.log("error " + Math.round(100 * 100 * diffs / (width * height)) / 100 + "%");

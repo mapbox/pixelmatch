@@ -224,7 +224,7 @@ var Pixelmatch = /** @class */ (function () {
         var val = Pixelmatch._blend(Pixelmatch._rgb2y(r, g, b), alpha * img[i + 3] / 255);
         Pixelmatch._drawPixel(output, i, val, val, val);
     };
-    Pixelmatch.match = function (img1, img2, output, width, height, options) {
+    Pixelmatch.pixelmatch = function (img1, img2, output, width, height, options) {
         if (!Pixelmatch._isPixelData(img1) || !Pixelmatch._isPixelData(img2) || (output && !Pixelmatch._isPixelData(output))) {
             throw new Error('Image data: Uint8Array, Uint8ClampedArray or Buffer expected.');
         }
@@ -297,7 +297,7 @@ var Pixelmatch = /** @class */ (function () {
         return diff;
     };
     Pixelmatch.default = {
-        threshold: 0.1,
+        threshold: 0.005,
         includeAA: false,
         alpha: 0.1,
         aaColor: [255, 255, 0],

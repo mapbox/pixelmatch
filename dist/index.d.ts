@@ -99,5 +99,5 @@ export default class Pixelmatch {
      * @param output
      */
     private static _drawGrayPixel;
-    static match(img1: Uint8Array, img2: Uint8Array, output: Buffer | null, width: number, height: number, options: Partial<Options>): number;
+    static pixelmatch(img1: Uint8Array, img2: Uint8Array, output: Buffer | null, width: number, height: number, options: Partial<Options>): number;
 }
