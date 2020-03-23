@@ -8,7 +8,7 @@ const fs = require('fs');
 const match = require('../.');
 
 if (process.argv.length < 4) {
-    console.log('Usage: imagematch image1.png image2.png [diff.png] [threshold=0.005] [includeAA=false]');
+    console.log('Usage: pixelmatch image1.png image2.png [diff.png] [threshold=0.005] [includeAA=false]');
     process.exit(64);
 }
 
