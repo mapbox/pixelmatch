@@ -8,14 +8,15 @@ const fs = require('fs');
 const match = require('../.');
 
 if (process.argv.length < 4) {
-    console.log('Usage: pixelmatch image1.png image2.png [diff.png] [threshold=0.005] [includeAA=false]');
+    console.log('Usage: pixelmatch image1.png image2.png [diff.png] [threshold=0.005] [includeAA=false] [differentiateDiffs=false]');
     process.exit(64);
 }
 
-const [,, img1Path, img2Path, diffPath, threshold, includeAA] = process.argv;
+const [,, img1Path, img2Path, diffPath, threshold, includeAA, differentiateDiffs] = process.argv;
 const options = {
     threshold: +threshold,
-    includeAA: includeAA !== undefined && includeAA !== 'false'
+    includeAA: includeAA !== undefined && includeAA !== 'false',
+    differentiateDiffs: differentiateDiffs !== undefined && differentiateDiffs !== 'false'
 };
 
 const img1 = PNG.sync.read(fs.readFileSync(img1Path));

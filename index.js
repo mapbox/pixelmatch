@@ -3,12 +3,15 @@
 module.exports = pixelmatch;
 
 const defaultOptions = {
-    threshold: 0.1,         // matching threshold (0 to 1); smaller is more sensitive
-    includeAA: false,       // whether to skip anti-aliasing detection
-    alpha: 0.1,             // opacity of original image in diff ouput
-    aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
-    diffColor: [255, 0, 0],  // color of different pixels in diff output
-    diffMask: false         // draw the diff over a transparent background (a mask)
+    threshold: 0.1,             // matching threshold (0 to 1); smaller is more sensitive
+    includeAA: false,           // whether to skip anti-aliasing detection
+    differentiateDiffs: false,  // whether to differentiate diff color between img1 and img2
+    alpha: 0.1,                 // opacity of original image in diff ouput
+    aaColor: [255, 255, 0],     // color of anti-aliased pixels in diff output
+    diffColor: [255, 0, 0],     // color of different pixels in diff output
+    diffColor1: [255, 0, 0],    // color of different pixels from img1 in diff output when `differentiateDiffs` is true
+    diffColor2: [0, 255, 0],    // color of different pixels from img2 in diff output when `differentiateDiffs` is true
+    diffMask: false             // draw the diff over a transparent background (a mask)
 };
 
 function pixelmatch(img1, img2, output, width, height, options) {
@@ -44,8 +47,6 @@ function pixelmatch(img1, img2, output, width, height, options) {
     const maxDelta = 35215 * options.threshold * options.threshold;
 
     let diff = 0;
-    const [aaR, aaG, aaB] = options.aaColor;
-    const [diffR, diffG, diffB] = options.diffColor;
 
     // compare each pixel of one image against the other one
     for (let y = 0; y < height; y++) {
@@ -54,7 +55,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
             const pos = (y * width + x) * 4;
 
             // squared YUV distance between colors at this pixel position
-            const delta = colorDelta(img1, img2, pos, pos);
+            const { delta, origin } = colorDelta(img1, img2, pos, pos);
 
             // the color difference is above the threshold
             if (delta > maxDelta) {
@@ -63,11 +64,21 @@ function pixelmatch(img1, img2, output, width, height, options) {
                                            antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
-                    if (output && !options.diffMask) drawPixel(output, pos, aaR, aaG, aaB);
+                    if (output && !options.diffMask) drawPixel(output, pos, ...options.aaColor);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as red
-                    if (output) drawPixel(output, pos, diffR, diffG, diffB);
+                    if (output) {
+                      if (options.differentiateDiffs) {
+                        if (origin === 1) {
+                          drawPixel(output, pos, ...options.diffColor1);
+                        } else {
+                          drawPixel(output, pos, ...options.diffColor2);
+                        }
+                      } else {
+                        drawPixel(output, pos, ...options.diffColor);
+                      }
+                    }
                     diff++;
                 }
 
@@ -107,7 +118,7 @@ function antialiased(img, x1, y1, width, height, img2) {
             if (x === x1 && y === y1) continue;
 
             // brightness delta between the center pixel and adjacent one
-            const delta = colorDelta(img, img, pos, (y * width + x) * 4, true);
+            const { delta } = colorDelta(img, img, pos, (y * width + x) * 4, true);
 
             // count the number of equal, darker and brighter adjacent pixels
             if (delta === 0) {
@@ -170,6 +181,8 @@ function hasManySiblings(img, x1, y1, width, height) {
 // using YIQ NTSC transmission color space in mobile applications" by Y. Kotsarenko and F. Ramos
 
 function colorDelta(img1, img2, k, m, yOnly) {
+    let origin = 1;
+
     let r1 = img1[k + 0];
     let g1 = img1[k + 1];
     let b1 = img1[k + 2];
@@ -196,14 +209,21 @@ function colorDelta(img1, img2, k, m, yOnly) {
         b2 = blend(b2, a2);
     }
 
-    const y = rgb2y(r1, g1, b1) - rgb2y(r2, g2, b2);
+    const y1 = rgb2y(r1, g1, b1);
+    const y2 = rgb2y(r2, g2, b2);
+    const y = y1 - y2;
+
+    if (y1 > y2) origin = 2;
 
     if (yOnly) return y; // brightness difference only
 
     const i = rgb2i(r1, g1, b1) - rgb2i(r2, g2, b2);
     const q = rgb2q(r1, g1, b1) - rgb2q(r2, g2, b2);
 
-    return 0.5053 * y * y + 0.299 * i * i + 0.1957 * q * q;
+    return {
+      origin,
+      delta: 0.5053 * y * y + 0.299 * i * i + 0.1957 * q * q
+    };
 }
 
 function rgb2y(r, g, b) { return r * 0.29889531 + g * 0.58662247 + b * 0.11448223; }
