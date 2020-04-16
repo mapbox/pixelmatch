@@ -207,7 +207,7 @@ function colorDelta(img1, img2, k, m, yOnly) {
 
     const delta = 0.5053 * y * y + 0.299 * i * i + 0.1957 * q * q;
 
-    return y1 > y2 ? -Math.abs(delta) : delta;
+    return y1 > y2 ? -delta : delta;
 }
 
 function rgb2y(r, g, b) { return r * 0.29889531 + g * 0.58662247 + b * 0.11448223; }
