@@ -51,7 +51,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
             const pos = (y * width + x) * 4;
 
-            // squared YUV distance between colors at this pixel position
+            // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
             const delta = colorDelta(img1, img2, pos, pos);
 
             // the color difference is above the threshold
@@ -64,9 +64,9 @@ function pixelmatch(img1, img2, output, width, height, options) {
                     if (output && !options.diffMask) drawPixel(output, pos, ...options.aaColor);
 
                 } else {
-                    // found substantial difference not caused by anti-aliasing; draw it as red
+                    // found substantial difference not caused by anti-aliasing; draw it as such
                     if (output) {
-                        drawPixel(output, pos, ...(options.diffColorAlt && delta < 0 ? options.diffColorAlt : options.diffColor));
+                        drawPixel(output, pos, ...(delta < 0 && options.diffColorAlt || options.diffColor));
                     }
                     diff++;
                 }
@@ -207,6 +207,7 @@ function colorDelta(img1, img2, k, m, yOnly) {
 
     const delta = 0.5053 * y * y + 0.299 * i * i + 0.1957 * q * q;
 
+    // encode whether the pixel lightens or darkens in the sign
     return y1 > y2 ? -delta : delta;
 }
 
