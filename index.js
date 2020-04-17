@@ -7,7 +7,8 @@ const defaultOptions = {
     includeAA: false,       // whether to skip anti-aliasing detection
     alpha: 0.1,             // opacity of original image in diff ouput
     aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
-    diffColor: [255, 0, 0],  // color of different pixels in diff output
+    diffColor: [255, 0, 0], // color of different pixels in diff output
+    diffColorAlt: null,     // whether to detect dark on light differences between img1 and img2 and set an alternative color to differentiate between the two
     diffMask: false         // draw the diff over a transparent background (a mask)
 };
 
@@ -42,10 +43,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
     const maxDelta = 35215 * options.threshold * options.threshold;
-
     let diff = 0;
-    const [aaR, aaG, aaB] = options.aaColor;
-    const [diffR, diffG, diffB] = options.diffColor;
 
     // compare each pixel of one image against the other one
     for (let y = 0; y < height; y++) {
@@ -57,17 +55,19 @@ function pixelmatch(img1, img2, output, width, height, options) {
             const delta = colorDelta(img1, img2, pos, pos);
 
             // the color difference is above the threshold
-            if (delta > maxDelta) {
+            if (Math.abs(delta) > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
                 if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
                                            antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
-                    if (output && !options.diffMask) drawPixel(output, pos, aaR, aaG, aaB);
+                    if (output && !options.diffMask) drawPixel(output, pos, ...options.aaColor);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as red
-                    if (output) drawPixel(output, pos, diffR, diffG, diffB);
+                    if (output) {
+                        drawPixel(output, pos, ...(options.diffColorAlt && delta < 0 ? options.diffColorAlt : options.diffColor));
+                    }
                     diff++;
                 }
 
@@ -196,14 +196,18 @@ function colorDelta(img1, img2, k, m, yOnly) {
         b2 = blend(b2, a2);
     }
 
-    const y = rgb2y(r1, g1, b1) - rgb2y(r2, g2, b2);
+    const y1 = rgb2y(r1, g1, b1);
+    const y2 = rgb2y(r2, g2, b2);
+    const y = y1 - y2;
 
     if (yOnly) return y; // brightness difference only
 
     const i = rgb2i(r1, g1, b1) - rgb2i(r2, g2, b2);
     const q = rgb2q(r1, g1, b1) - rgb2q(r2, g2, b2);
 
-    return 0.5053 * y * y + 0.299 * i * i + 0.1957 * q * q;
+    const delta = 0.5053 * y * y + 0.299 * i * i + 0.1957 * q * q;
+
+    return y1 > y2 ? -delta : delta;
 }
 
 function rgb2y(r, g, b) { return r * 0.29889531 + g * 0.58662247 + b * 0.11448223; }

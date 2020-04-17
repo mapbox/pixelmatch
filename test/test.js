@@ -22,6 +22,7 @@ diffTest('4a', '4b', '4diff', options, 36049);
 diffTest('5a', '5b', '5diff', options, 0);
 diffTest('6a', '6b', '6diff', options, 51);
 diffTest('6a', '6a', '6empty', {threshold: 0}, 0);
+diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2448);
 
 test('throws error if image sizes do not match', (t) => {
     t.throws(() => match(new Uint8Array(8), new Uint8Array(9), null, 2, 1), 'Image sizes do not match');
