@@ -5,7 +5,7 @@ module.exports = pixelmatch;
 const defaultOptions = {
     threshold: 0.1,         // matching threshold (0 to 1); smaller is more sensitive
     includeAA: false,       // whether to skip anti-aliasing detection
-    alpha: 0.1,             // opacity of original image in diff ouput
+    alpha: 0.1,             // opacity of original image in diff output
     aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
     diffColor: [255, 0, 0], // color of different pixels in diff output
     diffColorAlt: null,     // whether to detect dark on light differences between img1 and img2 and set an alternative color to differentiate between the two
