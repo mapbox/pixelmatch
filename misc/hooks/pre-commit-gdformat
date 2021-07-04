@@ -1,0 +1,25 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -i sh -p python38
+set -e 
+
+GDTOOLKIT_VERSION=f5e2746d146200ec07ac6acb6fb378fd4c64f3f0
+
+FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.gd$' | grep -v '^addons/gd-plug' | grep -v '^addons/gut' | sed 's| |\\ |g')
+echo $FILES
+[ -z "$FILES" ] && exit 0
+
+# Setup GDScript Toolkit. 
+if [ ! -f .venv/bin/activate ] || ! source .venv/bin/activate; then
+	python -m venv .venv && source .venv/bin/activate;
+fi
+if ! gdformat --version; then
+	pip install git+git://github.com/Scony/godot-gdscript-toolkit@${GDTOOLKIT_VERSION};
+fi
+
+# Format all selected files.
+echo "$FILES" | xargs gdformat
+
+# Add back the formatted files to staging.
+echo "$FILES" | xargs git add
+
+exit 0

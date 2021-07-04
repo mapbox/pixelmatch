@@ -1,0 +1,56 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=4
+
+_global_script_classes=[ {
+"base": "Reference",
+"class": "WAT",
+"language": "GDScript",
+"path": "res://addons/WAT/namespace.gd"
+}, {
+"base": "Node",
+"class": "WATTest",
+"language": "GDScript",
+"path": "res://addons/WAT/test/test.gd"
+} ]
+_global_script_class_icons={
+"WAT": "",
+"WATTest": ""
+}
+
+[WAT]
+
+Test_Directory="res://test"
+Results_Directory="res://test"
+Test_Metadata_Directory="res://test"
+Tags=PoolStringArray(  )
+Window_Size=Vector2( 1280, 720 )
+Minimize_Window_When_Running_Tests=false
+Port=6008
+Run_All_Tests=Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":0,"unicode":0,"echo":false,"script":null)
+
+Auto_Refresh_Tests=false
+Display=8
+
+[application]
+
+config/name="pixelmatch"
+config/icon="res://test/fixtures/icon_diff.png"
+
+[editor_plugins]
+
+enabled=PoolStringArray( "res://addons/WAT/plugin.cfg", "res://addons/gut/plugin.cfg" )
+
+[physics]
+
+common/enable_pause_aware_picking=true
+
+[rendering]
+
+environment/default_environment="res://default_env.tres"
