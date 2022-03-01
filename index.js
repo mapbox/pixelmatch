@@ -4,6 +4,7 @@ module.exports = pixelmatch;
 
 const defaultOptions = {
     threshold: 0.1,         // matching threshold (0 to 1); smaller is more sensitive
+    horizontalShiftPixels: 3, // Check matches within X many pixels of current pixel
     includeAA: false,       // whether to skip anti-aliasing detection
     alpha: 0.1,             // opacity of original image in diff output
     aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
@@ -52,7 +53,27 @@ function pixelmatch(img1, img2, output, width, height, options) {
             const pos = (y * width + x) * 4;
 
             // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
-            const delta = colorDelta(img1, img2, pos, pos);
+            // const delta = colorDelta(img1, img2, pos, pos);
+            let minAbsDelta = 9999;
+            let minOtherDelta = 9999;
+            for(let hShift = -1*options.horizontalShiftPixels; hShift <= options.horizontalShiftPixels; ++hShift){
+                if(x+hShift < 0 || x+hShift > width){
+                    //Ignore shifts of pixels outside the image
+                    continue;
+                }
+                const currDelta = Math.abs(colorDelta(img1, img2, pos, pos+hShift*4))
+                if(currDelta < minAbsDelta){
+                    minAbsDelta = currDelta
+                }
+                const otherDelta = Math.abs(colorDelta(img1, img2, pos+hShift*4, pos))
+                if(otherDelta < minOtherDelta){
+                    minOtherDelta = otherDelta
+                }
+            }
+            const delta = Math.max(minAbsDelta, minOtherDelta)
+            // if(delta > 0){
+            //     console.log(`${x} x ${y} MINdelta = ${delta}`)
+            // }
 
             // the color difference is above the threshold
             if (Math.abs(delta) > maxDelta) {
