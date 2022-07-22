@@ -29,7 +29,6 @@ function pixelmatch(img1, img2, output, width, height, options) {
     const a32 = new Uint32Array(img1.buffer, img1.byteOffset, len);
     const b32 = new Uint32Array(img2.buffer, img2.byteOffset, len);
     let identical = true;
-    //Q: why make a separare array???
     for (let i = 0; i < len; i++) {
         if (a32[i] !== b32[i]) { identical = false; break; }
     }
@@ -49,7 +48,6 @@ function pixelmatch(img1, img2, output, width, height, options) {
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
 
-            //Jo Note: yes.
             const pos = (y * width + x) * 4;
 
             // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
