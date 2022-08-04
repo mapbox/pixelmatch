@@ -6,7 +6,7 @@ const defaultOptions = {
     threshold: 0.1,         // matching threshold (0 to 1); smaller is more sensitive
     horizontalShiftPixels: 0, // Check matches within X many pixels of current pixel
     verticalShiftPixels: 0, // Check matches within Y many pixels of current pixel
-    includeAA: true,       // whether to skip anti-aliasing detection
+    includeAA: false,       // whether to skip anti-aliasing detection
     alpha: 0.1,             // opacity of original image in diff output
     aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
     diffColor: [255, 0, 0], // color of different pixels in diff output
