@@ -3,9 +3,9 @@
 module.exports = pixelmatch;
 
 const defaultOptions = {
-    threshold: 0.5,         // matching threshold (0 to 1); smaller is more sensitive
-    horizontalShiftPixels: 10, // Check matches within X many pixels of current pixel
-    verticalShiftPixels: 5, // Check matches within Y many pixels of current pixel
+    threshold: 0.1,         // matching threshold (0 to 1); smaller is more sensitive
+    horizontalShiftPixels: 0, // Check matches within X many pixels of current pixel
+    verticalShiftPixels: 0, // Check matches within Y many pixels of current pixel
     includeAA: true,       // whether to skip anti-aliasing detection
     alpha: 0.1,             // opacity of original image in diff output
     aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
@@ -55,26 +55,26 @@ function pixelmatch(img1, img2, output, width, height, options) {
 
             // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
             let delta = colorDelta(img1, img2, pos, pos);
-            if((delta > maxDelta || delta < -1*maxDelta) && (options.horizontalShiftPixels > 0 || options.verticalShiftPixels > 0)){
+            if ((delta > maxDelta || delta < -1 * maxDelta) && (options.horizontalShiftPixels > 0 || options.verticalShiftPixels > 0)) {
                 let minAbsDelta = 9999;
                 let minOtherDelta = 9999;
-                for(let hShift = -1*options.horizontalShiftPixels; hShift <= options.horizontalShiftPixels; ++hShift){
-                    for(let vShift = -1*options.verticalShiftPixels; vShift <= options.verticalShiftPixels; ++vShift){
-                        if(x+hShift < 0 || x+hShift > width || y+vShift < 0 || y+vShift > height){
+                for (let hShift = -1 * options.horizontalShiftPixels; hShift <= options.horizontalShiftPixels; ++hShift) {
+                    for (let vShift = -1 * options.verticalShiftPixels; vShift <= options.verticalShiftPixels; ++vShift) {
+                        if (x + hShift < 0 || x + hShift > width || y + vShift < 0 || y + vShift > height) {
                             //Ignore shifts of pixels outside the image
                             continue;
                         }
-                        const currDelta = colorDelta(img1, img2, pos, pos+((width*vShift)+hShift)*4)
-                        if(Math.abs(currDelta) < Math.abs(minAbsDelta)){
+                        const currDelta = colorDelta(img1, img2, pos, pos + ((width * vShift) + hShift) * 4)
+                        if (Math.abs(currDelta) < Math.abs(minAbsDelta)) {
                             minAbsDelta = currDelta
                         }
-                        const otherDelta = colorDelta(img1, img2, pos+((width*vShift)+hShift)*4, pos)
-                        if(Math.abs(otherDelta) < Math.abs(minOtherDelta)){
+                        const otherDelta = colorDelta(img1, img2, pos + ((width * vShift) + hShift) * 4, pos)
+                        if (Math.abs(otherDelta) < Math.abs(minOtherDelta)) {
                             minOtherDelta = otherDelta
                         }
                     }
                 }
-                if(Math.abs(minAbsDelta) > Math.abs(minOtherDelta)){
+                if (Math.abs(minAbsDelta) > Math.abs(minOtherDelta)) {
                     delta = minAbsDelta
                 } else {
                     delta = minOtherDelta
@@ -85,7 +85,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
             if (Math.abs(delta) > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
                 if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
-                                           antialiased(img2, x, y, width, height, img1))) {
+                    antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
                     if (output && !options.diffMask) drawPixel(output, pos, ...options.aaColor);
@@ -142,13 +142,13 @@ function antialiased(img, x1, y1, width, height, img2) {
                 // if found more than 2 equal siblings, it's definitely not anti-aliasing
                 if (zeroes > 2) return false;
 
-            // remember the darkest pixel
+                // remember the darkest pixel
             } else if (delta < min) {
                 min = delta;
                 minX = x;
                 minY = y;
 
-            // remember the brightest pixel
+                // remember the brightest pixel
             } else if (delta > max) {
                 max = delta;
                 maxX = x;
@@ -163,7 +163,7 @@ function antialiased(img, x1, y1, width, height, img2) {
     // if either the darkest or the brightest pixel has 3+ equal siblings in both images
     // (definitely not anti-aliased), this pixel is anti-aliased
     return (hasManySiblings(img, minX, minY, width, height) && hasManySiblings(img2, minX, minY, width, height)) ||
-           (hasManySiblings(img, maxX, maxY, width, height) && hasManySiblings(img2, maxX, maxY, width, height));
+        (hasManySiblings(img, maxX, maxY, width, height) && hasManySiblings(img2, maxX, maxY, width, height));
 }
 
 // check if a pixel has 3+ adjacent pixels of the same color.
