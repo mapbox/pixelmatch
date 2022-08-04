@@ -85,7 +85,7 @@ function pixelmatch(img1, img2, output, width, height, options) {
             if (Math.abs(delta) > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
                 if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
-                    antialiased(img2, x, y, width, height, img1))) {
+                                           antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
                     if (output && !options.diffMask) drawPixel(output, pos, ...options.aaColor);
@@ -142,13 +142,13 @@ function antialiased(img, x1, y1, width, height, img2) {
                 // if found more than 2 equal siblings, it's definitely not anti-aliasing
                 if (zeroes > 2) return false;
 
-                // remember the darkest pixel
+            // remember the darkest pixel
             } else if (delta < min) {
                 min = delta;
                 minX = x;
                 minY = y;
 
-                // remember the brightest pixel
+            // remember the brightest pixel
             } else if (delta > max) {
                 max = delta;
                 maxX = x;
@@ -163,7 +163,7 @@ function antialiased(img, x1, y1, width, height, img2) {
     // if either the darkest or the brightest pixel has 3+ equal siblings in both images
     // (definitely not anti-aliased), this pixel is anti-aliased
     return (hasManySiblings(img, minX, minY, width, height) && hasManySiblings(img2, minX, minY, width, height)) ||
-        (hasManySiblings(img, maxX, maxY, width, height) && hasManySiblings(img2, maxX, maxY, width, height));
+           (hasManySiblings(img, maxX, maxY, width, height) && hasManySiblings(img2, maxX, maxY, width, height));
 }
 
 // check if a pixel has 3+ adjacent pixels of the same color.
