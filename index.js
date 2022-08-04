@@ -64,20 +64,20 @@ function pixelmatch(img1, img2, output, width, height, options) {
                             //Ignore shifts of pixels outside the image
                             continue;
                         }
-                        const currDelta = colorDelta(img1, img2, pos, pos + ((width * vShift) + hShift) * 4)
+                        const currDelta = colorDelta(img1, img2, pos, pos + ((width * vShift) + hShift) * 4);
                         if (Math.abs(currDelta) < Math.abs(minAbsDelta)) {
-                            minAbsDelta = currDelta
+                            minAbsDelta = currDelta;
                         }
-                        const otherDelta = colorDelta(img1, img2, pos + ((width * vShift) + hShift) * 4, pos)
+                        const otherDelta = colorDelta(img1, img2, pos + ((width * vShift) + hShift) * 4, pos);
                         if (Math.abs(otherDelta) < Math.abs(minOtherDelta)) {
-                            minOtherDelta = otherDelta
+                            minOtherDelta = otherDelta;
                         }
                     }
                 }
                 if (Math.abs(minAbsDelta) > Math.abs(minOtherDelta)) {
-                    delta = minAbsDelta
+                    delta = minAbsDelta;
                 } else {
-                    delta = minOtherDelta
+                    delta = minOtherDelta;
                 }
             }
 
