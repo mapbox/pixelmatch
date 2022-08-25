@@ -89,7 +89,7 @@ function isPixelData(arr) {
 // check if a pixel is likely a part of anti-aliasing;
 // based on "Anti-aliased Pixel and Intensity Slope Detector" paper by V. Vysniauskas, 2009
 
-function antialiased(img, x1, y1, width, height, img2) {
+function antialiased(img, x1, y1, width, height) {
     let x0 = x1 - 1;
     let y0 = y1 - 1;
     let x2 = width - 1;
