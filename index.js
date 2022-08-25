@@ -98,74 +98,74 @@ function antialiased(img, x1, y1, width, height) {
 
     let zeroes = 0;
 
-    if (x1 == 0) {
+    if (x1 === 0) {
         x0 = 0;
-        if (y1 == 0) {
+        if (y1 === 0) {
             y0 = y1;
             //Tolerate only one zero.
             zeroes = 1;
         } else {
             //Tolerate up to two zeros on vertical line, but only one otherwise.
             zeroes = 1;
-            let deltaAbove = colorDelta(img, img, pos, ((y1 - 1) * width) * 4, true);
-            let deltaBelow = colorDelta(img, img, pos, ((y1 + 1) * width) * 4, true);
+            const deltaAbove = colorDelta(img, img, pos, ((y1 - 1) * width) * 4, true);
+            const deltaBelow = colorDelta(img, img, pos, ((y1 + 1) * width) * 4, true);
 
-            if (deltaAbove ==  0 || deltaBelow == 0) {
+            if (deltaAbove ===  0 || deltaBelow === 0) {
                 zeroes++;
                 //Start count moved over.
                 x0 = x2;
             }
         }
-    } else if (y1 == 0) {
+    } else if (y1 === 0) {
         y0 = 0;
         //Not in corner.
         //Tolerate two zeros on horizontal line, but only one otherwise.
-         //Tolerate up to two zeros on vertical line, but only one otherwise.
-         zeroes = 1;
-         let deltaRight = colorDelta(img, img, pos, ((x1 + 1) * width) * 4, true);
-         let deltaLeft = colorDelta(img, img, pos, ((x1 - 1) * width) * 4, true);
+        //Tolerate up to two zeros on vertical line, but only one otherwise.
+        zeroes = 1;
+        const deltaRight = colorDelta(img, img, pos, ((x1 + 1) * width) * 4, true);
+        const deltaLeft = colorDelta(img, img, pos, ((x1 - 1) * width) * 4, true);
 
-         if (deltaRight ==  0 || deltaLeft == 0) {
-             zeroes++;
-             //Start count moved over.
-             y0 = y2;
-         }
-    } if (x1 == width - 1) {
+        if (deltaRight ===  0 || deltaLeft === 0) {
+            zeroes++;
+            //Start count moved over.
+            y0 = y2;
+        }
+    } if (x1 === width - 1) {
         x2 = x1;
-        if (y1 == height - 1) {
+        if (y1 === height - 1) {
             y2 = y1;
             //Corner.
             //Tolerate only one zero.
             zeroes = 1;
         } else {
             //Not in corner.
-              //Tolerate up to two zeros on vertical line, but only one otherwise.
-              zeroes = 1;
-              let deltaAbove = colorDelta(img, img, pos, ((y1 - 1) * width) * 4, true);
-              let deltaBelow = colorDelta(img, img, pos, ((y1 + 1) * width) * 4, true);
-  
-              if (deltaAbove ==  0 || deltaBelow == 0) {
-                  zeroes++;
-                  //End count moved over.
-                  x2 = x0;
-              }
+            //Tolerate up to two zeros on vertical line, but only one otherwise.
+            zeroes = 1;
+            const deltaAbove = colorDelta(img, img, pos, ((y1 - 1) * width) * 4, true);
+            const deltaBelow = colorDelta(img, img, pos, ((y1 + 1) * width) * 4, true);
+
+            if (deltaAbove ===  0 || deltaBelow === 0) {
+                zeroes++;
+                //End count moved over.
+                x2 = x0;
+            }
         }
 
-    } else if (y1 == height - 1) {
+    } else if (y1 === height - 1) {
         y2 = y1;
         //Not in corner.
         //Tolerate up to two zeros on vertical line, but only one otherwise.
         zeroes = 1;
-        let deltaRight = colorDelta(img, img, pos, ((x1 + 1) * width) * 4, true);
-        let deltaLeft = colorDelta(img, img, pos, ((x1 - 1) * width) * 4, true);
+        const deltaRight = colorDelta(img, img, pos, ((x1 + 1) * width) * 4, true);
+        const deltaLeft = colorDelta(img, img, pos, ((x1 - 1) * width) * 4, true);
 
-        if (deltaRight ==  0 || deltaLeft == 0) {
+        if (deltaRight ===  0 || deltaLeft === 0) {
             zeroes++;
             //End count moved up.
             y2 = y0;
         }
     }
-  
+
     let lessThan = 0;
     let greaterThan = 0;
 
@@ -193,7 +193,7 @@ function antialiased(img, x1, y1, width, height) {
     }
 
     // if there are no both darker and brighter pixels among siblings, or if there are too many lighter or darker
-    //then it's not anti-aliasing. We can kill two birds here, since if zeros are less than 3, we have 6 siblings left. So we can check 
+    //then it's not anti-aliasing. We can kill two birds here, since if zeros are less than 3, we have 6 siblings left. So we can check
     //simply that they are split along the edge.
     if (greaterThan > 3 || lessThan > 3) return false;
 
