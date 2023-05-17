@@ -10,12 +10,12 @@
     "bin/pixelmatch"
   ],
   "dependencies": {
-    "pngjs": "^6.0.0"
+    "pngjs": "^7.0.0"
   },
   "devDependencies": {
-    "eslint": "^8.14.0",
+    "eslint": "^8.40.0",
     "eslint-config-mourner": "^3.0.0",
-    "tape": "^5.5.3"
+    "tape": "^5.6.3"
   },
   "scripts": {
     "pretest": "eslint index.js bin/pixelmatch test/test.js",

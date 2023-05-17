@@ -1,6 +1,6 @@
 # pixelmatch
 
-[![Build Status](https://travis-ci.org/mapbox/pixelmatch.svg?branch=master)](https://travis-ci.org/mapbox/pixelmatch)
+[![Build Status](https://travis-ci.com/mapbox/pixelmatch.svg?branch=master)](https://travis-ci.com/mapbox/pixelmatch)
 [![](https://img.shields.io/badge/simply-awesome-brightgreen.svg)](https://github.com/mourner/projects)
 
 The smallest, simplest and fastest JavaScript pixel-level image comparison library,
