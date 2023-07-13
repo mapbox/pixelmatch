@@ -9,9 +9,6 @@
   "files": [
     "bin/pixelmatch"
   ],
-  "engines": {
-    "node": ">=16"
-  },
   "dependencies": {
     "pngjs": "^7.0.0"
   },
