@@ -14,8 +14,7 @@
   },
   "devDependencies": {
     "eslint": "^8.40.0",
-    "eslint-config-mourner": "^3.0.0",
-    "tape": "^5.6.3"
+    "eslint-config-mourner": "^3.0.0"
   },
   "scripts": {
     "pretest": "eslint index.js bin/pixelmatch test/test.js",
