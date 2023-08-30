@@ -29,7 +29,6 @@ function pixelmatch(img1, img2, output, width, height, options) {
     const a32 = new Uint32Array(img1.buffer, img1.byteOffset, len);
     const b32 = new Uint32Array(img2.buffer, img2.byteOffset, len);
     let identical = true;
-
     for (let i = 0; i < len; i++) {
         if (a32[i] !== b32[i]) { identical = false; break; }
     }
@@ -90,16 +89,85 @@ function isPixelData(arr) {
 // check if a pixel is likely a part of anti-aliasing;
 // based on "Anti-aliased Pixel and Intensity Slope Detector" paper by V. Vysniauskas, 2009
 
-function antialiased(img, x1, y1, width, height, img2) {
-    const x0 = Math.max(x1 - 1, 0);
-    const y0 = Math.max(y1 - 1, 0);
-    const x2 = Math.min(x1 + 1, width - 1);
-    const y2 = Math.min(y1 + 1, height - 1);
+function antialiased(img, x1, y1, width, height) {
+    let x0 = x1 - 1;
+    let y0 = y1 - 1;
+    let x2 = width - 1;
+    let y2 = height - 1;
     const pos = (y1 * width + x1) * 4;
-    let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
-    let min = 0;
-    let max = 0;
-    let minX, minY, maxX, maxY;
+
+    let zeroes = 0;
+
+    if (x1 === 0) {
+        x0 = 0;
+        if (y1 === 0) {
+            y0 = y1;
+            //Tolerate only one zero.
+            zeroes = 1;
+        } else {
+            //Tolerate up to two zeros on vertical line, but only one otherwise.
+            zeroes = 1;
+            const deltaAbove = colorDelta(img, img, pos, ((y1 - 1) * width) * 4, true);
+            const deltaBelow = colorDelta(img, img, pos, ((y1 + 1) * width) * 4, true);
+
+            if (deltaAbove ===  0 || deltaBelow === 0) {
+                zeroes++;
+                //Start count moved over.
+                x0 = x2;
+            }
+        }
+    } else if (y1 === 0) {
+        y0 = 0;
+        //Not in corner.
+        //Tolerate two zeros on horizontal line, but only one otherwise.
+        //Tolerate up to two zeros on vertical line, but only one otherwise.
+        zeroes = 1;
+        const deltaRight = colorDelta(img, img, pos, ((x1 + 1) * width) * 4, true);
+        const deltaLeft = colorDelta(img, img, pos, ((x1 - 1) * width) * 4, true);
+
+        if (deltaRight ===  0 || deltaLeft === 0) {
+            zeroes++;
+            //Start count moved over.
+            y0 = y2;
+        }
+    } if (x1 === width - 1) {
+        x2 = x1;
+        if (y1 === height - 1) {
+            y2 = y1;
+            //Corner.
+            //Tolerate only one zero.
+            zeroes = 1;
+        } else {
+            //Not in corner.
+            //Tolerate up to two zeros on vertical line, but only one otherwise.
+            zeroes = 1;
+            const deltaAbove = colorDelta(img, img, pos, ((y1 - 1) * width) * 4, true);
+            const deltaBelow = colorDelta(img, img, pos, ((y1 + 1) * width) * 4, true);
+
+            if (deltaAbove ===  0 || deltaBelow === 0) {
+                zeroes++;
+                //End count moved over.
+                x2 = x0;
+            }
+        }
+
+    } else if (y1 === height - 1) {
+        y2 = y1;
+        //Not in corner.
+        //Tolerate up to two zeros on vertical line, but only one otherwise.
+        zeroes = 1;
+        const deltaRight = colorDelta(img, img, pos, ((x1 + 1) * width) * 4, true);
+        const deltaLeft = colorDelta(img, img, pos, ((x1 - 1) * width) * 4, true);
+
+        if (deltaRight ===  0 || deltaLeft === 0) {
+            zeroes++;
+            //End count moved up.
+            y2 = y0;
+        }
+    }
+
+    let lessThan = 0;
+    let greaterThan = 0;
 
     // go through 8 adjacent pixels
     for (let x = x0; x <= x2; x++) {
@@ -114,56 +182,22 @@ function antialiased(img, x1, y1, width, height, img2) {
                 zeroes++;
                 // if found more than 2 equal siblings, it's definitely not anti-aliasing
                 if (zeroes > 2) return false;
-
-            // remember the darkest pixel
-            } else if (delta < min) {
-                min = delta;
-                minX = x;
-                minY = y;
-
-            // remember the brightest pixel
-            } else if (delta > max) {
-                max = delta;
-                maxX = x;
-                maxY = y;
+            // count darker pixels
+            } else if (delta < 0) {
+                lessThan++;
+            // count lighter pixels
+            } else if (delta > 0) {
+                greaterThan++;
             }
         }
     }
 
-    // if there are no both darker and brighter pixels among siblings, it's not anti-aliasing
-    if (min === 0 || max === 0) return false;
+    // if there are no both darker and brighter pixels among siblings, or if there are too many lighter or darker
+    //then it's not anti-aliasing. We can kill two birds here, since if zeros are less than 3, we have 6 siblings left. So we can check
+    //simply that they are split along the edge.
+    if (greaterThan > 3 || lessThan > 3) return false;
 
-    // if either the darkest or the brightest pixel has 3+ equal siblings in both images
-    // (definitely not anti-aliased), this pixel is anti-aliased
-    return (hasManySiblings(img, minX, minY, width, height) && hasManySiblings(img2, minX, minY, width, height)) ||
-           (hasManySiblings(img, maxX, maxY, width, height) && hasManySiblings(img2, maxX, maxY, width, height));
-}
-
-// check if a pixel has 3+ adjacent pixels of the same color.
-function hasManySiblings(img, x1, y1, width, height) {
-    const x0 = Math.max(x1 - 1, 0);
-    const y0 = Math.max(y1 - 1, 0);
-    const x2 = Math.min(x1 + 1, width - 1);
-    const y2 = Math.min(y1 + 1, height - 1);
-    const pos = (y1 * width + x1) * 4;
-    let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
-
-    // go through 8 adjacent pixels
-    for (let x = x0; x <= x2; x++) {
-        for (let y = y0; y <= y2; y++) {
-            if (x === x1 && y === y1) continue;
-
-            const pos2 = (y * width + x) * 4;
-            if (img[pos] === img[pos2] &&
-                img[pos + 1] === img[pos2 + 1] &&
-                img[pos + 2] === img[pos2 + 2] &&
-                img[pos + 3] === img[pos2 + 3]) zeroes++;
-
-            if (zeroes > 2) return true;
-        }
-    }
-
-    return false;
+    return true;
 }
 
 // calculate color difference according to the paper "Measuring perceived color difference
