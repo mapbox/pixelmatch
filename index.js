@@ -4,6 +4,8 @@ module.exports = pixelmatch;
 
 const defaultOptions = {
     threshold: 0.1,         // matching threshold (0 to 1); smaller is more sensitive
+    horizontalShiftPixels: 0, // Check matches within X many pixels of current pixel
+    verticalShiftPixels: 0, // Check matches within Y many pixels of current pixel
     includeAA: false,       // whether to skip anti-aliasing detection
     alpha: 0.1,             // opacity of original image in diff output
     aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
@@ -52,7 +54,32 @@ function pixelmatch(img1, img2, output, width, height, options) {
             const pos = (y * width + x) * 4;
 
             // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
-            const delta = colorDelta(img1, img2, pos, pos);
+            let delta = colorDelta(img1, img2, pos, pos);
+            if ((delta > maxDelta || delta < -1 * maxDelta) && (options.horizontalShiftPixels > 0 || options.verticalShiftPixels > 0)) {
+                let minAbsDelta = 9999;
+                let minOtherDelta = 9999;
+                for (let hShift = -1 * options.horizontalShiftPixels; hShift <= options.horizontalShiftPixels; ++hShift) {
+                    for (let vShift = -1 * options.verticalShiftPixels; vShift <= options.verticalShiftPixels; ++vShift) {
+                        if (x + hShift < 0 || x + hShift > width || y + vShift < 0 || y + vShift > height) {
+                            //Ignore shifts of pixels outside the image
+                            continue;
+                        }
+                        const currDelta = colorDelta(img1, img2, pos, pos + ((width * vShift) + hShift) * 4);
+                        if (Math.abs(currDelta) < Math.abs(minAbsDelta)) {
+                            minAbsDelta = currDelta;
+                        }
+                        const otherDelta = colorDelta(img1, img2, pos + ((width * vShift) + hShift) * 4, pos);
+                        if (Math.abs(otherDelta) < Math.abs(minOtherDelta)) {
+                            minOtherDelta = otherDelta;
+                        }
+                    }
+                }
+                if (Math.abs(minAbsDelta) > Math.abs(minOtherDelta)) {
+                    delta = minAbsDelta;
+                } else {
+                    delta = minOtherDelta;
+                }
+            }
 
             // the color difference is above the threshold
             if (Math.abs(delta) > maxDelta) {
