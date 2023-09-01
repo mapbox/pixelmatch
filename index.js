@@ -40,6 +40,10 @@ function pixelmatch(img1, img2, output, width, height, options) {
         return 0;
     }
 
+    const drawAAColor = output && !options.diffMask && drawColorFn(output, options.aaColor);
+    const drawDiffColor = output && drawColorFn(output, options.diffColor);
+    const drawDiffAlt = output && drawColorFn(output, options.diffColorAlt || options.diffColor);
+
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
     const maxDelta = 35215 * options.threshold * options.threshold;
@@ -61,12 +65,16 @@ function pixelmatch(img1, img2, output, width, height, options) {
                                            antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
-                    if (output && !options.diffMask) drawPixel(output, pos, ...options.aaColor);
+                    if (drawAAColor) drawAAColor(pos);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as such
                     if (output) {
-                        drawPixel(output, pos, ...(delta < 0 && options.diffColorAlt || options.diffColor));
+                        if (delta < 0) {
+                            drawDiffAlt(pos);
+                        } else {
+                            drawDiffColor(pos);
+                        }
                     }
                     diff++;
                 }
@@ -233,4 +241,17 @@ function drawGrayPixel(img, i, alpha, output) {
     const b = img[i + 2];
     const val = blend(rgb2y(r, g, b), alpha * img[i + 3] / 255);
     drawPixel(output, i, val, val, val);
+}
+
+function drawColorFn(output, c) {
+    const r = c[0];
+    const g = c[1];
+    const b = c[2];
+
+    return function (pos) {
+        output[pos + 0] = r;
+        output[pos + 1] = g;
+        output[pos + 2] = b;
+        output[pos + 3] = 255;
+    };
 }
