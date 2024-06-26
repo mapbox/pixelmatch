@@ -1,6 +1,7 @@
 {
   "name": "pixelmatch",
   "version": "5.3.0",
+  "type": "module",
   "description": "The smallest and fastest pixel-level image comparison library.",
   "main": "index.js",
   "bin": {
@@ -13,12 +14,12 @@
     "pngjs": "^7.0.0"
   },
   "devDependencies": {
-    "eslint": "^8.40.0",
-    "eslint-config-mourner": "^3.0.0"
+    "eslint": "^9.5.0",
+    "eslint-config-mourner": "^4.0.0"
   },
   "scripts": {
-    "pretest": "eslint index.js bin/pixelmatch test/test.js",
-    "test": "node test/test.js"
+    "pretest": "eslint",
+    "test": "node --test"
   },
   "repository": {
     "type": "git",
@@ -29,9 +30,6 @@
     "comparison",
     "diff"
   ],
-  "eslintConfig": {
-    "extends": "mourner"
-  },
   "author": "Vladimir Agafonkin",
   "license": "ISC",
   "bugs": {

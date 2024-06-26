@@ -1,12 +1,10 @@
-'use strict';
 
-const assert = require('node:assert/strict');
-const test = require('node:test');
-const fs = require('node:fs');
-const path = require('node:path');
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import fs from 'node:fs';
 
-const PNG = require('pngjs').PNG;
-const match = require('../.');
+import {PNG} from 'pngjs';
+import match from '../index.js';
 
 const options = {threshold: 0.05};
 
@@ -67,8 +65,8 @@ function diffTest(imgPath1, imgPath2, diffPath, options, expectedMismatch) {
 }
 
 function readImage(name) {
-    return PNG.sync.read(fs.readFileSync(path.join(__dirname, `fixtures/${name}.png`)));
+    return PNG.sync.read(fs.readFileSync(new URL(`fixtures/${name}.png`, import.meta.url)));
 }
 function writeImage(name, image) {
-    fs.writeFileSync(path.join(__dirname, `fixtures/${name}.png`), PNG.sync.write(image));
+    fs.writeFileSync(new URL(`fixtures/${name}.png`, import.meta.url), PNG.sync.write(image));
 }
