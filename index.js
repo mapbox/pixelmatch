@@ -40,6 +40,9 @@ export default function pixelmatch(img1, img2, output, width, height, options) {
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
     const maxDelta = 35215 * options.threshold * options.threshold;
+    const [aaR, aaG, aaB] = options.aaColor;
+    const [diffR, diffG, diffB] = options.diffColor;
+    const [altR, altG, altB] = options.diffColorAlt || options.diffColor;
     let diff = 0;
 
     // compare each pixel of one image against the other one
@@ -58,12 +61,16 @@ export default function pixelmatch(img1, img2, output, width, height, options) {
                                            antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
-                    if (output && !options.diffMask) drawPixel(output, pos, ...options.aaColor);
+                    if (output && !options.diffMask) drawPixel(output, pos, aaR, aaG, aaB);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as such
                     if (output) {
-                        drawPixel(output, pos, ...(delta < 0 && options.diffColorAlt || options.diffColor));
+                        if (delta < 0) {
+                            drawPixel(output, pos, altR, altG, altB);
+                        } else {
+                            drawPixel(output, pos, diffR, diffG, diffB);
+                        }
                     }
                     diff++;
                 }
