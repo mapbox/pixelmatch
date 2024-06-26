@@ -1,6 +1,6 @@
 # pixelmatch
 
-[![Build Status](https://travis-ci.com/mapbox/pixelmatch.svg?branch=master)](https://travis-ci.com/mapbox/pixelmatch)
+[![Node](https://github.com/mapbox/pixelmatch/actions/workflows/node.yml/badge.svg)](https://github.com/mapbox/pixelmatch/actions/workflows/node.yml)
 [![](https://img.shields.io/badge/simply-awesome-brightgreen.svg)](https://github.com/mourner/projects)
 
 The smallest, simplest and fastest JavaScript pixel-level image comparison library,
@@ -101,7 +101,7 @@ Install with NPM:
 npm install pixelmatch
 ```
 
-Use in the browser from a CDN:
+Use in the browser from a CDN:
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/pixelmatch@5.3.0"></script>
