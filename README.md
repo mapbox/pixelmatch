@@ -67,9 +67,9 @@ pixelmatch image1.png image2.png output.png 0.1
 ### Node.js
 
 ```js
-const fs = require('fs');
-const PNG = require('pngjs').PNG;
-const pixelmatch = require('pixelmatch');
+import fs from 'fs';
+import {PNG} from 'pngjs';
+import pixelmatch from 'pixelmatch';
 
 const img1 = PNG.sync.read(fs.readFileSync('img1.png'));
 const img2 = PNG.sync.read(fs.readFileSync('img2.png'));
@@ -101,10 +101,11 @@ Install with NPM:
 npm install pixelmatch
 ```
 
-Use in the browser from a CDN:
+Or use in the browser from a CDN:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/pixelmatch@5.3.0"></script>
+<script type="module">
+	import pixelmatch from 'https://esm.run/pixelmatch';
 ```
 
 ## [Changelog](https://github.com/mapbox/pixelmatch/releases)
