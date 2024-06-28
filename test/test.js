@@ -17,6 +17,24 @@ diffTest('2a', '2b', '2diff', {
     aaColor: [0, 192, 0],
     diffColor: [255, 0, 255]
 }, 12437);
+diffTest('2a', '2b', '2diff_ignored_regions', {
+    threshold: 0.05,
+    ignoredRegions: [
+        {
+            x1: 128,
+            y1: 0,
+            x2: 256,
+            y2: 128,
+        },
+        {
+            x1: 0,
+            y1: 128,
+            x2: 128,
+            y2: 256
+        }
+    ],
+    ignoredColor: [0, 255, 255]
+}, 2229);
 diffTest('3a', '3b', '3diff', options, 212);
 diffTest('4a', '4b', '4diff', options, 36049);
 diffTest('5a', '5b', '5diff', options, 0);
