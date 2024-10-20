@@ -184,20 +184,24 @@ function colorDelta(img1, img2, k, m, yOnly) {
     let b2 = img2[m + 2];
     let a2 = img2[m + 3];
 
-    if (a1 === a2 && r1 === r2 && g1 === g2 && b1 === b2) return 0;
+    if (a1 === a2 && r1 === r2 && g1 === g2 && b1 === b2 && a1 === a2) return 0;
+
+    const rBackground = 64 + 128 * (k % 2);
+    const gBackground = 64 + 128 * (Math.floor(k / 2) % 2);
+    const bBackground = 64 + 128 * (Math.floor(k / 4) % 2);
 
     if (a1 < 255) {
         a1 /= 255;
-        r1 = blend(r1, a1);
-        g1 = blend(g1, a1);
-        b1 = blend(b1, a1);
+        r1 = blend(r1, rBackground, a1);
+        g1 = blend(g1, gBackground, a1);
+        b1 = blend(b1, bBackground, a1);
     }
 
     if (a2 < 255) {
         a2 /= 255;
-        r2 = blend(r2, a2);
-        g2 = blend(g2, a2);
-        b2 = blend(b2, a2);
+        r2 = blend(r2, rBackground, a2);
+        g2 = blend(g2, gBackground, a2);
+        b2 = blend(b2, bBackground, a2);
     }
 
     const y1 = rgb2y(r1, g1, b1);
@@ -219,9 +223,9 @@ function rgb2y(r, g, b) { return r * 0.29889531 + g * 0.58662247 + b * 0.1144822
 function rgb2i(r, g, b) { return r * 0.59597799 - g * 0.27417610 - b * 0.32180189; }
 function rgb2q(r, g, b) { return r * 0.21147017 - g * 0.52261711 + b * 0.31114694; }
 
-// blend semi-transparent color with white
-function blend(c, a) {
-    return 255 + (c - 255) * a;
+// blend semi-transparent color with background
+function blend(c, cBackground, a) {
+    return cBackground + (c - cBackground) * a;
 }
 
 function drawPixel(output, pos, r, g, b) {
@@ -235,6 +239,6 @@ function drawGrayPixel(img, i, alpha, output) {
     const r = img[i + 0];
     const g = img[i + 1];
     const b = img[i + 2];
-    const val = blend(rgb2y(r, g, b), alpha * img[i + 3] / 255);
+    const val = blend(rgb2y(r, g, b), 255, alpha * img[i + 3] / 255);
     drawPixel(output, i, val, val, val);
 }
