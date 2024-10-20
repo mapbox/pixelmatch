@@ -187,8 +187,8 @@ function colorDelta(img1, img2, k, m, yOnly) {
     if (a1 === a2 && r1 === r2 && g1 === g2 && b1 === b2 && a1 === a2) return 0;
 
     const rBackground = 48 + 159 * (k % 2);
-    const gBackground = 48 + 159 * (Math.floor(k / 2) % 2);
-    const bBackground = 48 + 159 * (Math.floor(k / 4) % 2);
+    const gBackground = 48 + 159 * (Math.floor(k / 1.616) % 2);
+    const bBackground = 48 + 159 * (Math.floor(k / 2.612) % 2);
 
     if (a1 < 255) {
         a1 /= 255;

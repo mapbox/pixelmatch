@@ -19,7 +19,7 @@ diffTest('2a', '2b', '2diff', {
 }, 12437);
 diffTest('3a', '3b', '3diff', options, 212);
 diffTest('4a', '4b', '4diff', options, 36049);
-diffTest('5a', '5b', '5diff', options, 8);
+diffTest('5a', '5b', '5diff', options, 1);
 diffTest('6a', '6b', '6diff', options, 51);
 diffTest('6a', '6a', '6empty', {threshold: 0}, 0);
 diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2448);
