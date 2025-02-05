@@ -1,15 +1,14 @@
 
-const defaultOptions = {
-    threshold: 0.1,         // matching threshold (0 to 1); smaller is more sensitive
-    includeAA: false,       // whether to skip anti-aliasing detection
-    alpha: 0.1,             // opacity of original image in diff output
-    aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
-    diffColor: [255, 0, 0], // color of different pixels in diff output
-    diffColorAlt: null,     // whether to detect dark on light differences between img1 and img2 and set an alternative color to differentiate between the two
-    diffMask: false         // draw the diff over a transparent background (a mask)
-};
-
 export default function pixelmatch(img1, img2, output, width, height, options) {
+    const {
+        threshold = 0.1,         // matching threshold (0 to 1); smaller is more sensitive
+        includeAA = false,       // whether to skip anti-aliasing detection
+        alpha = 0.1,             // opacity of original image in diff output
+        aaColor = [255, 255, 0], // color of anti-aliased pixels in diff output
+        diffColor = [255, 0, 0], // color of different pixels in diff output
+        diffColorAlt = null,     // whether to detect dark on light differences between img1 and img2 and set an alternative color to differentiate between the two
+        diffMask = false         // draw the diff over a transparent background (a mask)
+    } = options;
 
     if (!isPixelData(img1) || !isPixelData(img2) || (output && !isPixelData(output)))
         throw new Error('Image data: Uint8Array, Uint8ClampedArray or Buffer expected.');
@@ -18,8 +17,6 @@ export default function pixelmatch(img1, img2, output, width, height, options) {
         throw new Error('Image sizes do not match.');
 
     if (img1.length !== width * height * 4) throw new Error('Image data size does not match width/height.');
-
-    options = Object.assign({}, defaultOptions, options);
 
     // check if images are identical
     const len = width * height;
@@ -31,18 +28,18 @@ export default function pixelmatch(img1, img2, output, width, height, options) {
         if (a32[i] !== b32[i]) { identical = false; break; }
     }
     if (identical) { // fast path if identical
-        if (output && !options.diffMask) {
-            for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, options.alpha, output);
+        if (output && !diffMask) {
+            for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, alpha, output);
         }
         return 0;
     }
 
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
-    const maxDelta = 35215 * options.threshold * options.threshold;
-    const [aaR, aaG, aaB] = options.aaColor;
-    const [diffR, diffG, diffB] = options.diffColor;
-    const [altR, altG, altB] = options.diffColorAlt || options.diffColor;
+    const maxDelta = 35215 * threshold * threshold;
+    const [aaR, aaG, aaB] = aaColor;
+    const [diffR, diffG, diffB] = diffColor;
+    const [altR, altG, altB] = diffColorAlt || diffColor;
     let diff = 0;
 
     // compare each pixel of one image against the other one
@@ -57,11 +54,11 @@ export default function pixelmatch(img1, img2, output, width, height, options) {
             // the color difference is above the threshold
             if (Math.abs(delta) > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
-                if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
+                if (!includeAA && (antialiased(img1, x, y, width, height, img2) ||
                                            antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
-                    if (output && !options.diffMask) drawPixel(output, pos, aaR, aaG, aaB);
+                    if (output && !diffMask) drawPixel(output, pos, aaR, aaG, aaB);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as such
@@ -77,7 +74,7 @@ export default function pixelmatch(img1, img2, output, width, height, options) {
 
             } else if (output) {
                 // pixels are similar; draw background as grayscale image blended with white
-                if (!options.diffMask) drawGrayPixel(img1, pos, options.alpha, output);
+                if (!diffMask) drawGrayPixel(img1, pos, alpha, output);
             }
         }
     }
