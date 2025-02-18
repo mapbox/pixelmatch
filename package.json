@@ -14,8 +14,8 @@
     "pngjs": "^7.0.0"
   },
   "devDependencies": {
-    "eslint": "^9.5.0",
-    "eslint-config-mourner": "^4.0.0"
+    "eslint": "^9.20.1",
+    "eslint-config-mourner": "^4.0.2"
   },
   "scripts": {
     "pretest": "eslint",
