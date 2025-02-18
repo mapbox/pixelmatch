@@ -1,5 +1,5 @@
 
-export default function pixelmatch(img1, img2, output, width, height, options) {
+export default function pixelmatch(img1, img2, output, width, height, options = {}) {
     const {
         threshold = 0.1,         // matching threshold (0 to 1); smaller is more sensitive
         includeAA = false,       // whether to skip anti-aliasing detection
