@@ -1,15 +1,14 @@
 
-const defaultOptions = {
-    threshold: 0.1,         // matching threshold (0 to 1); smaller is more sensitive
-    includeAA: false,       // whether to skip anti-aliasing detection
-    alpha: 0.1,             // opacity of original image in diff output
-    aaColor: [255, 255, 0], // color of anti-aliased pixels in diff output
-    diffColor: [255, 0, 0], // color of different pixels in diff output
-    diffColorAlt: null,     // whether to detect dark on light differences between img1 and img2 and set an alternative color to differentiate between the two
-    diffMask: false         // draw the diff over a transparent background (a mask)
-};
-
-export default function pixelmatch(img1, img2, output, width, height, options) {
+export default function pixelmatch(img1, img2, output, width, height, options = {}) {
+    const {
+        threshold = 0.1,         // matching threshold (0 to 1); smaller is more sensitive
+        includeAA = false,       // whether to skip anti-aliasing detection
+        alpha = 0.1,             // opacity of original image in diff output
+        aaColor = [255, 255, 0], // color of anti-aliased pixels in diff output
+        diffColor = [255, 0, 0], // color of different pixels in diff output
+        diffColorAlt = null,     // whether to detect dark on light differences between img1 and img2 and set an alternative color to differentiate between the two
+        diffMask = false         // draw the diff over a transparent background (a mask)
+    } = options;
 
     if (!isPixelData(img1) || !isPixelData(img2) || (output && !isPixelData(output)))
         throw new Error('Image data: Uint8Array, Uint8ClampedArray or Buffer expected.');
@@ -18,8 +17,6 @@ export default function pixelmatch(img1, img2, output, width, height, options) {
         throw new Error('Image sizes do not match.');
 
     if (img1.length !== width * height * 4) throw new Error('Image data size does not match width/height.');
-
-    options = Object.assign({}, defaultOptions, options);
 
     // check if images are identical
     const len = width * height;
@@ -31,18 +28,18 @@ export default function pixelmatch(img1, img2, output, width, height, options) {
         if (a32[i] !== b32[i]) { identical = false; break; }
     }
     if (identical) { // fast path if identical
-        if (output && !options.diffMask) {
-            for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, options.alpha, output);
+        if (output && !diffMask) {
+            for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, alpha, output);
         }
         return 0;
     }
 
     // maximum acceptable square distance between two colors;
     // 35215 is the maximum possible value for the YIQ difference metric
-    const maxDelta = 35215 * options.threshold * options.threshold;
-    const [aaR, aaG, aaB] = options.aaColor;
-    const [diffR, diffG, diffB] = options.diffColor;
-    const [altR, altG, altB] = options.diffColorAlt || options.diffColor;
+    const maxDelta = 35215 * threshold * threshold;
+    const [aaR, aaG, aaB] = aaColor;
+    const [diffR, diffG, diffB] = diffColor;
+    const [altR, altG, altB] = diffColorAlt || diffColor;
     let diff = 0;
 
     // compare each pixel of one image against the other one
@@ -52,16 +49,16 @@ export default function pixelmatch(img1, img2, output, width, height, options) {
             const pos = (y * width + x) * 4;
 
             // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
-            const delta = colorDelta(img1, img2, pos, pos);
+            const delta = colorDelta(img1, img2, pos, pos, false);
 
             // the color difference is above the threshold
             if (Math.abs(delta) > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
-                if (!options.includeAA && (antialiased(img1, x, y, width, height, img2) ||
+                if (!includeAA && (antialiased(img1, x, y, width, height, img2) ||
                                            antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
-                    if (output && !options.diffMask) drawPixel(output, pos, aaR, aaG, aaB);
+                    if (output && !diffMask) drawPixel(output, pos, aaR, aaG, aaB);
 
                 } else {
                     // found substantial difference not caused by anti-aliasing; draw it as such
@@ -77,7 +74,7 @@ export default function pixelmatch(img1, img2, output, width, height, options) {
 
             } else if (output) {
                 // pixels are similar; draw background as grayscale image blended with white
-                if (!options.diffMask) drawGrayPixel(img1, pos, options.alpha, output);
+                if (!diffMask) drawGrayPixel(img1, pos, alpha, output);
             }
         }
     }
@@ -174,58 +171,42 @@ function hasManySiblings(img, x1, y1, width, height) {
 // using YIQ NTSC transmission color space in mobile applications" by Y. Kotsarenko and F. Ramos
 
 function colorDelta(img1, img2, k, m, yOnly) {
-    let r1 = img1[k + 0];
-    let g1 = img1[k + 1];
-    let b1 = img1[k + 2];
-    let a1 = img1[k + 3];
+    const r1 = img1[k];
+    const g1 = img1[k + 1];
+    const b1 = img1[k + 2];
+    const a1 = img1[k + 3];
+    const r2 = img2[m];
+    const g2 = img2[m + 1];
+    const b2 = img2[m + 2];
+    const a2 = img2[m + 3];
 
-    let r2 = img2[m + 0];
-    let g2 = img2[m + 1];
-    let b2 = img2[m + 2];
-    let a2 = img2[m + 3];
+    let dr = r1 - r2;
+    let dg = g1 - g2;
+    let db = b1 - b2;
+    const da = a1 - a2;
 
-    if (a1 === a2 && r1 === r2 && g1 === g2 && b1 === b2) return 0;
+    if (!da && !dr && !dg && !db) return 0;
 
-    const rBackground = 48 + 159 * (k % 2);
-    const gBackground = 48 + 159 * (Math.floor(k / 1.618033988749895) % 2);
-    const bBackground = 48 + 159 * (Math.floor(k / 2.618033988749895) % 2);
-
-    if (a1 < 255) {
-        a1 /= 255;
-        r1 = blend(r1, rBackground, a1);
-        g1 = blend(g1, gBackground, a1);
-        b1 = blend(b1, bBackground, a1);
+    if (a1 < 255 || a2 < 255) { // blend pixels with background
+        const rb = 48 + 159 * (k % 2);
+        const gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
+        const bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
+        dr = (r1 * a1 - r2 * a2 - rb * da) / 255;
+        dg = (g1 * a1 - g2 * a2 - gb * da) / 255;
+        db = (b1 * a1 - b2 * a2 - bb * da) / 255;
     }
 
-    if (a2 < 255) {
-        a2 /= 255;
-        r2 = blend(r2, rBackground, a2);
-        g2 = blend(g2, gBackground, a2);
-        b2 = blend(b2, bBackground, a2);
-    }
-
-    const y1 = rgb2y(r1, g1, b1);
-    const y2 = rgb2y(r2, g2, b2);
-    const y = y1 - y2;
+    const y = dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
 
     if (yOnly) return y; // brightness difference only
 
-    const i = rgb2i(r1, g1, b1) - rgb2i(r2, g2, b2);
-    const q = rgb2q(r1, g1, b1) - rgb2q(r2, g2, b2);
+    const i = dr * 0.59597799 - dg * 0.27417610 - db * 0.32180189;
+    const q = dr * 0.21147017 - dg * 0.52261711 + db * 0.31114694;
 
     const delta = 0.5053 * y * y + 0.299 * i * i + 0.1957 * q * q;
 
     // encode whether the pixel lightens or darkens in the sign
-    return y1 > y2 ? -delta : delta;
-}
-
-function rgb2y(r, g, b) { return r * 0.29889531 + g * 0.58662247 + b * 0.11448223; }
-function rgb2i(r, g, b) { return r * 0.59597799 - g * 0.27417610 - b * 0.32180189; }
-function rgb2q(r, g, b) { return r * 0.21147017 - g * 0.52261711 + b * 0.31114694; }
-
-// blend semi-transparent color with background
-function blend(c, cBackground, a) {
-    return cBackground + (c - cBackground) * a;
+    return y > 0 ? -delta : delta;
 }
 
 function drawPixel(output, pos, r, g, b) {
@@ -239,6 +220,6 @@ function drawGrayPixel(img, i, alpha, output) {
     const r = img[i + 0];
     const g = img[i + 1];
     const b = img[i + 2];
-    const val = blend(rgb2y(r, g, b), 255, alpha * img[i + 3] / 255);
+    const val = 255 + (r * 0.29889531 + g * 0.58662247 + b * 0.11448223 - 255) * alpha * img[i + 3] / 255;
     drawPixel(output, i, val, val, val);
 }
