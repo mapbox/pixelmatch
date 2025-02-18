@@ -183,16 +183,17 @@ function colorDelta(img1, img2, k, m, yOnly) {
     let dr = r1 - r2;
     let dg = g1 - g2;
     let db = b1 - b2;
+    const da = a1 - a2;
 
-    if (a1 === a2 && !dr && !dg && !db) return 0;
+    if (!da && !dr && !dg && !db) return 0;
 
     if (a1 < 255 || a2 < 255) { // blend pixels with background
         const rb = 255;
         const gb = 255;
         const bb = 255;
-        dr = ((r1 - rb) * a1 - (r2 - rb) * a2) / 255;
-        dg = ((g1 - gb) * a1 - (g2 - gb) * a2) / 255;
-        db = ((b1 - bb) * a1 - (b2 - bb) * a2) / 255;
+        dr = (r1 * a1 - r2 * a2 - rb * da) / 255;
+        dg = (g1 * a1 - g2 * a2 - gb * da) / 255;
+        db = (b1 * a1 - b2 * a2 - bb * da) / 255;
     }
 
     const y = dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
