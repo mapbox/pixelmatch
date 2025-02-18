@@ -171,35 +171,29 @@ function hasManySiblings(img, x1, y1, width, height) {
 // using YIQ NTSC transmission color space in mobile applications" by Y. Kotsarenko and F. Ramos
 
 function colorDelta(img1, img2, k, m, yOnly) {
-    let r1 = img1[k];
-    let g1 = img1[k + 1];
-    let b1 = img1[k + 2];
-    let a1 = img1[k + 3];
+    const r1 = img1[k];
+    const g1 = img1[k + 1];
+    const b1 = img1[k + 2];
+    const a1 = img1[k + 3];
+    const r2 = img2[m];
+    const g2 = img2[m + 1];
+    const b2 = img2[m + 2];
+    const a2 = img2[m + 3];
 
-    let r2 = img2[m];
-    let g2 = img2[m + 1];
-    let b2 = img2[m + 2];
-    let a2 = img2[m + 3];
+    let dr = r1 - r2;
+    let dg = g1 - g2;
+    let db = b1 - b2;
 
-    if (a1 === a2 && r1 === r2 && g1 === g2 && b1 === b2) return 0;
+    if (a1 === a2 && !dr && !dg && !db) return 0;
 
-    if (a1 < 255) {
-        a1 /= 255;
-        r1 = blend(r1, a1);
-        g1 = blend(g1, a1);
-        b1 = blend(b1, a1);
+    if (a1 < 255 || a2 < 255) { // blend pixels with background
+        const rb = 255;
+        const gb = 255;
+        const bb = 255;
+        dr = ((r1 - rb) * a1 - (r2 - rb) * a2) / 255;
+        dg = ((g1 - gb) * a1 - (g2 - gb) * a2) / 255;
+        db = ((b1 - bb) * a1 - (b2 - bb) * a2) / 255;
     }
-
-    if (a2 < 255) {
-        a2 /= 255;
-        r2 = blend(r2, a2);
-        g2 = blend(g2, a2);
-        b2 = blend(b2, a2);
-    }
-
-    const dr = r1 - r2;
-    const dg = g1 - g2;
-    const db = b1 - b2;
 
     const y = dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
 
@@ -214,11 +208,6 @@ function colorDelta(img1, img2, k, m, yOnly) {
     return y > 0 ? -delta : delta;
 }
 
-// blend semi-transparent color with white
-function blend(c, a) {
-    return 255 + (c - 255) * a;
-}
-
 function drawPixel(output, pos, r, g, b) {
     output[pos + 0] = r;
     output[pos + 1] = g;
@@ -230,6 +219,6 @@ function drawGrayPixel(img, i, alpha, output) {
     const r = img[i + 0];
     const g = img[i + 1];
     const b = img[i + 2];
-    const val = blend(r * 0.29889531 + g * 0.58662247 + b * 0.11448223, alpha * img[i + 3] / 255);
+    const val = 255 + (r * 0.29889531 + g * 0.58662247 + b * 0.11448223 - 255) * alpha * img[i + 3] / 255;
     drawPixel(output, i, val, val, val);
 }
