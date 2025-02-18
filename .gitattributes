@@ -1,0 +1,6 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Declare files that will always have LF line endings on checkout, so that it matches the configured eslint rules.
+*.js text eol=lf
+bin/pixelmatch text eol=lf
