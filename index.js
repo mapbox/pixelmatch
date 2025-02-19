@@ -1,13 +1,30 @@
-
+/**
+ * Compare two equally sized images, pixel by pixel.
+ *
+ * @param {Uint8Array | Uint8ClampedArray} img1 First image data.
+ * @param {Uint8Array | Uint8ClampedArray} img2 Second image data.
+ * @param {Uint8Array | Uint8ClampedArray | void} output Image data to write the diff to, if provided.
+ * @param {number} width Input images width.
+ * @param {number} height Input images height.
+ *
+ * @param {Object} [options]
+ * @param {number} [options.threshold=0.1] Matching threshold (0 to 1); smaller is more sensitive.
+ * @param {boolean} [options.includeAA=false] Whether to skip anti-aliasing detection.
+ * @param {number} [options.alpha=0.1] Opacity of original image in diff output.
+ * @param {[number, number, number]} [options.aaColor=[255, 255, 0]] Color of anti-aliased pixels in diff output.
+ * @param {[number, number, number]} [options.diffColor=[255, 0, 0]] Color of different pixels in diff output.
+ * @param {[number, number, number]} [options.diffColorAlt=options.diffColor] Whether to detect dark on light differences between img1 and img2 and set an alternative color to differentiate between the two.
+ * @param {boolean} [options.diffMask=false] Draw the diff over a transparent background (a mask).
+ *
+ * @return {number} The number of mismatched pixels.
+ */
 export default function pixelmatch(img1, img2, output, width, height, options = {}) {
     const {
-        threshold = 0.1,         // matching threshold (0 to 1); smaller is more sensitive
-        includeAA = false,       // whether to skip anti-aliasing detection
-        alpha = 0.1,             // opacity of original image in diff output
-        aaColor = [255, 255, 0], // color of anti-aliased pixels in diff output
-        diffColor = [255, 0, 0], // color of different pixels in diff output
-        diffColorAlt = null,     // whether to detect dark on light differences between img1 and img2 and set an alternative color to differentiate between the two
-        diffMask = false         // draw the diff over a transparent background (a mask)
+        threshold = 0.1,
+        alpha = 0.1,
+        aaColor = [255, 255, 0],
+        diffColor = [255, 0, 0],
+        includeAA, diffColorAlt, diffMask
     } = options;
 
     if (!isPixelData(img1) || !isPixelData(img2) || (output && !isPixelData(output)))
@@ -54,8 +71,7 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
             // the color difference is above the threshold
             if (Math.abs(delta) > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
-                if (!includeAA && (antialiased(img1, x, y, width, height, img2) ||
-                                           antialiased(img2, x, y, width, height, img1))) {
+                if (!includeAA && (antialiased(img1, x, y, width, height, img2) || antialiased(img2, x, y, width, height, img1))) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
                     if (output && !diffMask) drawPixel(output, pos, aaR, aaG, aaB);
@@ -83,14 +99,22 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
     return diff;
 }
 
+/** @param {Uint8Array | Uint8ClampedArray} arr */
 function isPixelData(arr) {
     // work around instanceof Uint8Array not working properly in some Jest environments
-    return ArrayBuffer.isView(arr) && arr.constructor.BYTES_PER_ELEMENT === 1;
+    return ArrayBuffer.isView(arr) && arr.BYTES_PER_ELEMENT === 1;
 }
 
-// check if a pixel is likely a part of anti-aliasing;
-// based on "Anti-aliased Pixel and Intensity Slope Detector" paper by V. Vysniauskas, 2009
-
+/**
+ * Check if a pixel is likely a part of anti-aliasing;
+ * based on "Anti-aliased Pixel and Intensity Slope Detector" paper by V. Vysniauskas, 2009
+ * @param {Uint8Array | Uint8ClampedArray} img
+ * @param {number} x1
+ * @param {number} y1
+ * @param {number} width
+ * @param {number} height
+ * @param {Uint8Array | Uint8ClampedArray} img2
+ */
 function antialiased(img, x1, y1, width, height, img2) {
     const x0 = Math.max(x1 - 1, 0);
     const y0 = Math.max(y1 - 1, 0);
@@ -100,7 +124,10 @@ function antialiased(img, x1, y1, width, height, img2) {
     let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
     let min = 0;
     let max = 0;
-    let minX, minY, maxX, maxY;
+    let minX = 0;
+    let minY = 0;
+    let maxX = 0;
+    let maxY = 0;
 
     // go through 8 adjacent pixels
     for (let x = x0; x <= x2; x++) {
@@ -140,7 +167,14 @@ function antialiased(img, x1, y1, width, height, img2) {
            (hasManySiblings(img, maxX, maxY, width, height) && hasManySiblings(img2, maxX, maxY, width, height));
 }
 
-// check if a pixel has 3+ adjacent pixels of the same color.
+/**
+ * Check if a pixel has 3+ adjacent pixels of the same color.
+ * @param {Uint8Array | Uint8ClampedArray} img
+ * @param {number} x1
+ * @param {number} y1
+ * @param {number} width
+ * @param {number} height
+ */
 function hasManySiblings(img, x1, y1, width, height) {
     const x0 = Math.max(x1 - 1, 0);
     const y0 = Math.max(y1 - 1, 0);
@@ -167,9 +201,15 @@ function hasManySiblings(img, x1, y1, width, height) {
     return false;
 }
 
-// calculate color difference according to the paper "Measuring perceived color difference
-// using YIQ NTSC transmission color space in mobile applications" by Y. Kotsarenko and F. Ramos
-
+/**
+ * Calculate color difference according to the paper "Measuring perceived color difference
+ * using YIQ NTSC transmission color space in mobile applications" by Y. Kotsarenko and F. Ramos
+ * @param {Uint8Array | Uint8ClampedArray} img1
+ * @param {Uint8Array | Uint8ClampedArray} img2
+ * @param {number} k
+ * @param {number} m
+ * @param {boolean} yOnly
+ */
 function colorDelta(img1, img2, k, m, yOnly) {
     const r1 = img1[k];
     const g1 = img1[k + 1];
@@ -209,6 +249,13 @@ function colorDelta(img1, img2, k, m, yOnly) {
     return y > 0 ? -delta : delta;
 }
 
+/**
+ * @param {Uint8Array | Uint8ClampedArray} output
+ * @param {number} pos
+ * @param {number} r
+ * @param {number} g
+ * @param {number} b
+ */
 function drawPixel(output, pos, r, g, b) {
     output[pos + 0] = r;
     output[pos + 1] = g;
@@ -216,10 +263,13 @@ function drawPixel(output, pos, r, g, b) {
     output[pos + 3] = 255;
 }
 
+/**
+ * @param {Uint8Array | Uint8ClampedArray} img
+ * @param {number} i
+ * @param {number} alpha
+ * @param {Uint8Array | Uint8ClampedArray} output
+ */
 function drawGrayPixel(img, i, alpha, output) {
-    const r = img[i + 0];
-    const g = img[i + 1];
-    const b = img[i + 2];
-    const val = 255 + (r * 0.29889531 + g * 0.58662247 + b * 0.11448223 - 255) * alpha * img[i + 3] / 255;
+    const val = 255 + (img[i] * 0.29889531 + img[i + 1] * 0.58662247 + img[i + 2] * 0.11448223 - 255) * alpha * img[i + 3] / 255;
     drawPixel(output, i, val, val, val);
 }

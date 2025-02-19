@@ -4,3 +4,4 @@ node_modules
 .nyc_output
 coverage
 tmp
+index.d.ts
