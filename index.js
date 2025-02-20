@@ -183,18 +183,17 @@ function hasManySiblings(img, x1, y1, width, height) {
     const y0 = Math.max(y1 - 1, 0);
     const x2 = Math.min(x1 + 1, width - 1);
     const y2 = Math.min(y1 + 1, height - 1);
-    const pos = y1 * width + x1;
+    const val = img[y1 * width + x1];
     let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
 
     // go through 8 adjacent pixels
     for (let x = x0; x <= x2; x++) {
         for (let y = y0; y <= y2; y++) {
             if (x === x1 && y === y1) continue;
-            if (img[pos] === img[y * width + x]) zeroes++;
+            zeroes += +(val === img[y * width + x]);
             if (zeroes > 2) return true;
         }
     }
-
     return false;
 }
 
