@@ -72,7 +72,7 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
             // the color difference is above the threshold
             if (Math.abs(delta) > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
-                const isAA = antialiased(img1, x, y, width, height, a32, b32) || antialiased(img2, x, y, width, height, a32, b32);
+                const isAA = antialiased(img1, x, y, width, height, a32, b32) || antialiased(img2, x, y, width, height, b32, a32);
                 if (!includeAA && isAA) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
@@ -90,9 +90,9 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
                     diff++;
                 }
 
-            } else if (output) {
+            } else if (output && !diffMask) {
                 // pixels are similar; draw background as grayscale image blended with white
-                if (!diffMask) drawGrayPixel(img1, pos, alpha, output);
+                drawGrayPixel(img1, pos, alpha, output);
             }
         }
     }
