@@ -221,7 +221,7 @@ function colorDelta(img1, img2, k, m, yOnly) {
     let db = b1 - b2;
     const da = a1 - a2;
 
-    if (!da && !dr && !dg && !db) return 0;
+    if (!dr && !dg && !db && !da) return 0;
 
     if (a1 < 255 || a2 < 255) { // blend pixels with background
         const rb = 48 + 159 * (k % 2);
