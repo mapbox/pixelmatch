@@ -63,15 +63,17 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
 
-            const pos = (y * width + x) * 4;
+            const i = y * width + x;
+            const pos = i * 4;
 
             // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
-            const delta = colorDelta(img1, img2, pos, pos, false);
+            const delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos, false);
 
             // the color difference is above the threshold
             if (Math.abs(delta) > maxDelta) {
                 // check it's a real rendering difference or just anti-aliasing
-                if (!includeAA && (antialiased(img1, x, y, width, height, img2) || antialiased(img2, x, y, width, height, img1))) {
+                const isAA = antialiased(img1, x, y, width, height, a32, b32) || antialiased(img2, x, y, width, height, a32, b32);
+                if (!includeAA && isAA) {
                     // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                     // note that we do not include such pixels in a mask
                     if (output && !diffMask) drawPixel(output, pos, aaR, aaG, aaB);
@@ -113,14 +115,15 @@ function isPixelData(arr) {
  * @param {number} y1
  * @param {number} width
  * @param {number} height
- * @param {Uint8Array | Uint8ClampedArray} img2
+ * @param {Uint32Array} a32
+ * @param {Uint32Array} b32
  */
-function antialiased(img, x1, y1, width, height, img2) {
+function antialiased(img, x1, y1, width, height, a32, b32) {
     const x0 = Math.max(x1 - 1, 0);
     const y0 = Math.max(y1 - 1, 0);
     const x2 = Math.min(x1 + 1, width - 1);
     const y2 = Math.min(y1 + 1, height - 1);
-    const pos = (y1 * width + x1) * 4;
+    const pos = y1 * width + x1;
     let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
     let min = 0;
     let max = 0;
@@ -135,7 +138,7 @@ function antialiased(img, x1, y1, width, height, img2) {
             if (x === x1 && y === y1) continue;
 
             // brightness delta between the center pixel and adjacent one
-            const delta = colorDelta(img, img, pos, (y * width + x) * 4, true);
+            const delta = colorDelta(img, img, pos * 4, (y * width + x) * 4, true);
 
             // count the number of equal, darker and brighter adjacent pixels
             if (delta === 0) {
@@ -163,13 +166,13 @@ function antialiased(img, x1, y1, width, height, img2) {
 
     // if either the darkest or the brightest pixel has 3+ equal siblings in both images
     // (definitely not anti-aliased), this pixel is anti-aliased
-    return (hasManySiblings(img, minX, minY, width, height) && hasManySiblings(img2, minX, minY, width, height)) ||
-           (hasManySiblings(img, maxX, maxY, width, height) && hasManySiblings(img2, maxX, maxY, width, height));
+    return (hasManySiblings(a32, minX, minY, width, height) && hasManySiblings(b32, minX, minY, width, height)) ||
+           (hasManySiblings(a32, maxX, maxY, width, height) && hasManySiblings(b32, maxX, maxY, width, height));
 }
 
 /**
  * Check if a pixel has 3+ adjacent pixels of the same color.
- * @param {Uint8Array | Uint8ClampedArray} img
+ * @param {Uint32Array} img
  * @param {number} x1
  * @param {number} y1
  * @param {number} width
@@ -180,20 +183,14 @@ function hasManySiblings(img, x1, y1, width, height) {
     const y0 = Math.max(y1 - 1, 0);
     const x2 = Math.min(x1 + 1, width - 1);
     const y2 = Math.min(y1 + 1, height - 1);
-    const pos = (y1 * width + x1) * 4;
+    const pos = y1 * width + x1;
     let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
 
     // go through 8 adjacent pixels
     for (let x = x0; x <= x2; x++) {
         for (let y = y0; y <= y2; y++) {
             if (x === x1 && y === y1) continue;
-
-            const pos2 = (y * width + x) * 4;
-            if (img[pos] === img[pos2] &&
-                img[pos + 1] === img[pos2 + 1] &&
-                img[pos + 2] === img[pos2 + 2] &&
-                img[pos + 3] === img[pos2 + 3]) zeroes++;
-
+            if (img[pos] === img[y * width + x]) zeroes++;
             if (zeroes > 2) return true;
         }
     }
