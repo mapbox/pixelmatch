@@ -25,6 +25,26 @@ diffTest('6a', '6b', '6diff', options, 51);
 diffTest('6a', '6a', '6empty', {threshold: 0}, 0);
 diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2448);
 diffTest('8a', '5b', '8diff', options, 32896);
+diffTest('9a', '9b', '9diff', {threshold: 0.1}, 2944);
+diffTest('9a', '9b', '9empty', {horizontalShiftPixels: 7, verticalShiftPixels: 6, threshold: 0.1}, 0);
+diffTest('2a', '2b', '2diff_ignored_regions', {
+    threshold: 0.05,
+    ignoredRegions: [
+        {
+            x1: 128,
+            y1: 0,
+            x2: 256,
+            y2: 128,
+        },
+        {
+            x1: 0,
+            y1: 128,
+            x2: 128,
+            y2: 256
+        }
+    ],
+    ignoredColor: [0, 255, 255]
+}, 2229);
 
 test('throws error if image sizes do not match', () => {
     assert.throws(() => match(new Uint8Array(8), new Uint8Array(9), null, 2, 1), 'Image sizes do not match');
