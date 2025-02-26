@@ -1,6 +1,6 @@
 {
   "name": "pixelmatch-beta",
-  "version": "7.1.2",
+  "version": "7.1.3",
   "type": "module",
   "description": "The smallest and fastest pixel-level image comparison library.",
   "main": "index.js",
