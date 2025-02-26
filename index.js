@@ -17,8 +17,6 @@
  * @param {boolean} [options.diffMask=false] Draw the diff over a transparent background (a mask).
  * @param {Array<{x1: number, y1: number, x2: number, y2: number}> | null} [options.ignoredRegions=null] Regions to ignore in the diff output.
  * @param {[number, number, number]} [options.ignoredColor=null] Color to draw the ignored regions in the diff output.
- * @param {number} [options.horizontalShiftPixels=0] Check matches within X many pixels of current pixel
- * @param {number} [options.verticalShiftPixels=0] Check matches within Y many pixels of current pixel
  *
  * @return {number} The number of mismatched pixels.
  */
@@ -33,8 +31,6 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
         diffMask,
         ignoredRegions = null,
         ignoredColor = null,
-        horizontalShiftPixels = 0,
-        verticalShiftPixels = 0,
     } = options;
 
     if (!isPixelData(img1) || !isPixelData(img2) || (output && !isPixelData(output)))
@@ -88,34 +84,7 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
             }
 
             // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
-            let delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos, false);
-
-            // Check matches within X,Y many pixels of current pixel
-            if ((delta > maxDelta || delta < -1 * maxDelta) && (horizontalShiftPixels > 0 || verticalShiftPixels > 0)) {
-                let minAbsDelta = 9999;
-                let minOtherDelta = 9999;
-                for (let hShift = -1 * horizontalShiftPixels; hShift <= horizontalShiftPixels; ++hShift) {
-                    for (let vShift = -1 * verticalShiftPixels; vShift <= verticalShiftPixels; ++vShift) {
-                        if (x + hShift < 0 || x + hShift > width || y + vShift < 0 || y + vShift > height) {
-                            //Ignore shifts of pixels outside the image
-                            continue;
-                        }
-                        const currDelta = colorDelta(img1, img2, pos, pos + ((width * vShift) + hShift) * 4, false);
-                        if (Math.abs(currDelta) < Math.abs(minAbsDelta)) {
-                            minAbsDelta = currDelta;
-                        }
-                        const otherDelta = colorDelta(img1, img2, pos + ((width * vShift) + hShift) * 4, pos, false);
-                        if (Math.abs(otherDelta) < Math.abs(minOtherDelta)) {
-                            minOtherDelta = otherDelta;
-                        }
-                    }
-                }
-                if (Math.abs(minAbsDelta) > Math.abs(minOtherDelta)) {
-                    delta = minAbsDelta;
-                } else {
-                    delta = minOtherDelta;
-                }
-            }
+            const delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos, false);
 
             // the color difference is above the threshold
             if (Math.abs(delta) > maxDelta) {

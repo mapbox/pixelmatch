@@ -53,8 +53,6 @@ Implements ideas from the following papers:
 - `diffMask` — Draw the diff over a transparent background (a mask), rather than over the original image. Will not draw anti-aliased pixels (if detected).
 - `ignoredRegions` — Regions to ignore in the diff output.
 - `ignoredRegionsColor` —Color to draw the ignored regions in the diff output.
-- `horizontalShiftPixels` — Check matches within X many pixels of current pixel
-- `verticalShiftPixels` — Check matches within Y many pixels of current pixel
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 
