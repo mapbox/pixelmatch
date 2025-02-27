@@ -71,7 +71,7 @@ pixelmatch image1.png image2.png output.png 0.1
 ```js
 import fs from 'fs';
 import {PNG} from 'pngjs';
-import pixelmatch from 'pixelmatch-beta';
+import pixelmatch from 'pixelmatch';
 
 const img1 = PNG.sync.read(fs.readFileSync('img1.png'));
 const img2 = PNG.sync.read(fs.readFileSync('img2.png'));
@@ -100,7 +100,7 @@ diffContext.putImageData(diff, 0, 0);
 Install with NPM:
 
 ```bash
-npm install pixelmatch-beta
+npm install pixelmatch
 ```
 
 Or use in the browser from a CDN:

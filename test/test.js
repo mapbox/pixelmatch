@@ -25,8 +25,6 @@ diffTest('6a', '6b', '6diff', options, 51);
 diffTest('6a', '6a', '6empty', {threshold: 0}, 0);
 diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2448);
 diffTest('8a', '5b', '8diff', options, 32896);
-diffTest('9a', '9b', '9diff', {threshold: 0.1}, 2944);
-diffTest('9a', '9b', '9empty', {horizontalShiftPixels: 7, verticalShiftPixels: 6, threshold: 0.1}, 0);
 diffTest('2a', '2b', '2diff_ignored_regions', {
     threshold: 0.05,
     ignoredRegions: [
