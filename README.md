@@ -11,7 +11,7 @@ and **perceptual color difference metrics**.
 
 Inspired by [Resemble.js](https://github.com/Huddle/Resemble.js)
 and [Blink-diff](https://github.com/yahoo/blink-diff).
-Unlike these libraries, pixelmatch is around **150 lines of code**,
+Unlike these libraries, pixelmatch is less than **300 lines of code**,
 has **no dependencies**, and works on **raw typed arrays** of image data,
 so it's **blazing fast** and can be used in **any environment** (Node or browsers).
 
