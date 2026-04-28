@@ -26,6 +26,14 @@ diffTest('6a', '6a', '6empty', {threshold: 0}, 0);
 diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2448);
 diffTest('8a', '5b', '8diff', options, 32896);
 
+test('checkerboard: false blends semi-transparent pixels against white', () => {
+    // These two pixels are visually identical composited on white but differ on a dark checkerboard
+    const img1 = new Uint8Array([0, 0, 0, 128]);      // 50% transparent black
+    const img2 = new Uint8Array([127, 127, 127, 255]); // opaque gray
+    assert.equal(match(img1, img2, null, 1, 1, {checkerboard: false}), 0);
+    assert.equal(match(img1, img2, null, 1, 1), 1);
+});
+
 test('throws error if image sizes do not match', () => {
     assert.throws(() => match(new Uint8Array(8), new Uint8Array(9), null, 2, 1), 'Image sizes do not match');
 });

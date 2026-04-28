@@ -15,6 +15,7 @@
  * @param {[number, number, number]} [options.diffColor=[255, 0, 0]] Color of different pixels in diff output.
  * @param {[number, number, number]} [options.diffColorAlt=options.diffColor] Whether to detect dark on light differences between img1 and img2 and set an alternative color to differentiate between the two.
  * @param {boolean} [options.diffMask=false] Draw the diff over a transparent background (a mask).
+ * @param {boolean} [options.checkerboard=true] Whether to blend semi-transparent pixels against a checkerboard pattern (true) or plain white (false) when comparing.
  *
  * @return {number} The number of mismatched pixels.
  */
@@ -24,6 +25,7 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
         alpha = 0.1,
         aaColor = [255, 255, 0],
         diffColor = [255, 0, 0],
+        checkerboard = true,
         includeAA, diffColorAlt, diffMask
     } = options;
 
@@ -62,14 +64,14 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
     // compare each pixel of one image against the other one
     for (let i = 0, pos = 0; i < len; i++, pos += 4) {
         // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
-        const delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos);
+        const delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos, checkerboard);
 
         // the color difference is above the threshold
         if (Math.abs(delta) > maxDelta) {
             const x = i % width;
             const y = (i / width) | 0;
             // check it's a real rendering difference or just anti-aliasing
-            const isExcludedAA = !includeAA && (antialiased(img1, x, y, width, height, a32, b32) || antialiased(img2, x, y, width, height, b32, a32));
+            const isExcludedAA = !includeAA && (antialiased(img1, x, y, width, height, a32, b32, checkerboard) || antialiased(img2, x, y, width, height, b32, a32, checkerboard));
             if (isExcludedAA) {
                 // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                 // note that we do not include such pixels in a mask
@@ -113,8 +115,9 @@ function isPixelData(arr) {
  * @param {number} height
  * @param {Uint32Array} a32
  * @param {Uint32Array} b32
+ * @param {boolean} checkerboard
  */
-function antialiased(img, x1, y1, width, height, a32, b32) {
+function antialiased(img, x1, y1, width, height, a32, b32, checkerboard) {
     const x0 = Math.max(x1 - 1, 0);
     const y0 = Math.max(y1 - 1, 0);
     const x2 = Math.min(x1 + 1, width - 1);
@@ -139,7 +142,7 @@ function antialiased(img, x1, y1, width, height, a32, b32) {
             if (x === x1 && y === y1) continue;
 
             // brightness delta between the center pixel and adjacent one
-            const delta = brightnessDelta(img, pos4, (y * width + x) * 4, cr, cg, cb, ca);
+            const delta = brightnessDelta(img, pos4, (y * width + x) * 4, cr, cg, cb, ca, checkerboard);
 
             // count the number of equal, darker and brighter adjacent pixels
             if (delta === 0) {
@@ -206,8 +209,9 @@ function hasManySiblings(img, x1, y1, width, height) {
  * @param {Uint8Array | Uint8ClampedArray} img2
  * @param {number} k
  * @param {number} m
+ * @param {boolean} checkerboard
  */
-function colorDelta(img1, img2, k, m) {
+function colorDelta(img1, img2, k, m, checkerboard) {
     const r1 = img1[k];
     const g1 = img1[k + 1];
     const b1 = img1[k + 2];
@@ -223,9 +227,12 @@ function colorDelta(img1, img2, k, m) {
     const da = a1 - a2;
 
     if (a1 < 255 || a2 < 255) { // blend pixels with background
-        const rb = 48 + 159 * (k % 2);
-        const gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
-        const bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
+        let rb = 255, gb = 255, bb = 255;
+        if (checkerboard) {
+            rb = 48 + 159 * (k % 2);
+            gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
+            bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
+        }
         dr = (r1 * a1 - r2 * a2 - rb * da) / 255;
         dg = (g1 * a1 - g2 * a2 - gb * da) / 255;
         db = (b1 * a1 - b2 * a2 - bb * da) / 255;
@@ -251,8 +258,9 @@ function colorDelta(img1, img2, k, m) {
  * @param {number} g1
  * @param {number} b1
  * @param {number} a1
+ * @param {boolean} checkerboard
  */
-function brightnessDelta(img, k, m, r1, g1, b1, a1) {
+function brightnessDelta(img, k, m, r1, g1, b1, a1, checkerboard) {
     const r2 = img[m];
     const g2 = img[m + 1];
     const b2 = img[m + 2];
@@ -266,9 +274,12 @@ function brightnessDelta(img, k, m, r1, g1, b1, a1) {
     if (!dr && !dg && !db && !da) return 0;
 
     if (a1 < 255 || a2 < 255) {
-        const rb = 48 + 159 * (k % 2);
-        const gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
-        const bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
+        let rb = 255, gb = 255, bb = 255;
+        if (checkerboard) {
+            rb = 48 + 159 * (k % 2);
+            gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
+            bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
+        }
         dr = (r1 * a1 - r2 * a2 - rb * da) / 255;
         dg = (g1 * a1 - g2 * a2 - gb * da) / 255;
         db = (b1 * a1 - b2 * a2 - bb * da) / 255;
