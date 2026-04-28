@@ -46,7 +46,7 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
     }
     if (identical) { // fast path if identical
         if (output && !diffMask) {
-            for (let i = 0; i < len; i++) drawGrayPixel(img1, 4 * i, alpha, output);
+            for (let i = 0, pos = 0; i < len; i++, pos += 4) drawGrayPixel(img1, pos, alpha, output);
         }
         return 0;
     }
@@ -60,40 +60,36 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
     let diff = 0;
 
     // compare each pixel of one image against the other one
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
+    for (let i = 0, pos = 0; i < len; i++, pos += 4) {
+        // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
+        const delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos);
 
-            const i = y * width + x;
-            const pos = i * 4;
+        // the color difference is above the threshold
+        if (Math.abs(delta) > maxDelta) {
+            const x = i % width;
+            const y = (i / width) | 0;
+            // check it's a real rendering difference or just anti-aliasing
+            const isExcludedAA = !includeAA && (antialiased(img1, x, y, width, height, a32, b32) || antialiased(img2, x, y, width, height, b32, a32));
+            if (isExcludedAA) {
+                // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
+                // note that we do not include such pixels in a mask
+                if (output && !diffMask) drawPixel(output, pos, aaR, aaG, aaB);
 
-            // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
-            const delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos, false);
-
-            // the color difference is above the threshold
-            if (Math.abs(delta) > maxDelta) {
-                // check it's a real rendering difference or just anti-aliasing
-                const isExcludedAA = !includeAA && (antialiased(img1, x, y, width, height, a32, b32) || antialiased(img2, x, y, width, height, b32, a32));
-                if (isExcludedAA) {
-                    // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
-                    // note that we do not include such pixels in a mask
-                    if (output && !diffMask) drawPixel(output, pos, aaR, aaG, aaB);
-
-                } else {
-                    // found substantial difference not caused by anti-aliasing; draw it as such
-                    if (output) {
-                        if (delta < 0) {
-                            drawPixel(output, pos, altR, altG, altB);
-                        } else {
-                            drawPixel(output, pos, diffR, diffG, diffB);
-                        }
+            } else {
+                // found substantial difference not caused by anti-aliasing; draw it as such
+                if (output) {
+                    if (delta < 0) {
+                        drawPixel(output, pos, altR, altG, altB);
+                    } else {
+                        drawPixel(output, pos, diffR, diffG, diffB);
                     }
-                    diff++;
                 }
-
-            } else if (output && !diffMask) {
-                // pixels are similar; draw background as grayscale image blended with white
-                drawGrayPixel(img1, pos, alpha, output);
+                diff++;
             }
+
+        } else if (output && !diffMask) {
+            // pixels are similar; draw background as grayscale image blended with white
+            drawGrayPixel(img1, pos, alpha, output);
         }
     }
 
@@ -123,7 +119,12 @@ function antialiased(img, x1, y1, width, height, a32, b32) {
     const y0 = Math.max(y1 - 1, 0);
     const x2 = Math.min(x1 + 1, width - 1);
     const y2 = Math.min(y1 + 1, height - 1);
-    const pos = y1 * width + x1;
+    const pos4 = (y1 * width + x1) * 4;
+    // cache the center pixel's RGBA once instead of re-reading it on every neighbor comparison
+    const cr = img[pos4];
+    const cg = img[pos4 + 1];
+    const cb = img[pos4 + 2];
+    const ca = img[pos4 + 3];
     let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
     let min = 0;
     let max = 0;
@@ -138,7 +139,7 @@ function antialiased(img, x1, y1, width, height, a32, b32) {
             if (x === x1 && y === y1) continue;
 
             // brightness delta between the center pixel and adjacent one
-            const delta = colorDelta(img, img, pos * 4, (y * width + x) * 4, true);
+            const delta = brightnessDelta(img, pos4, (y * width + x) * 4, cr, cg, cb, ca);
 
             // count the number of equal, darker and brighter adjacent pixels
             if (delta === 0) {
@@ -199,14 +200,14 @@ function hasManySiblings(img, x1, y1, width, height) {
 
 /**
  * Calculate color difference according to the paper "Measuring perceived color difference
- * using YIQ NTSC transmission color space in mobile applications" by Y. Kotsarenko and F. Ramos
+ * using YIQ NTSC transmission color space in mobile applications" by Y. Kotsarenko and F. Ramos.
+ * Caller guarantees the two pixels differ, so the early-zero check is omitted.
  * @param {Uint8Array | Uint8ClampedArray} img1
  * @param {Uint8Array | Uint8ClampedArray} img2
  * @param {number} k
  * @param {number} m
- * @param {boolean} yOnly
  */
-function colorDelta(img1, img2, k, m, yOnly) {
+function colorDelta(img1, img2, k, m) {
     const r1 = img1[k];
     const g1 = img1[k + 1];
     const b1 = img1[k + 2];
@@ -221,8 +222,6 @@ function colorDelta(img1, img2, k, m, yOnly) {
     let db = b1 - b2;
     const da = a1 - a2;
 
-    if (!dr && !dg && !db && !da) return 0;
-
     if (a1 < 255 || a2 < 255) { // blend pixels with background
         const rb = 48 + 159 * (k % 2);
         const gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
@@ -233,9 +232,6 @@ function colorDelta(img1, img2, k, m, yOnly) {
     }
 
     const y = dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
-
-    if (yOnly) return y; // brightness difference only
-
     const i = dr * 0.59597799 - dg * 0.27417610 - db * 0.32180189;
     const q = dr * 0.21147017 - dg * 0.52261711 + db * 0.31114694;
 
@@ -246,6 +242,42 @@ function colorDelta(img1, img2, k, m, yOnly) {
 }
 
 /**
+ * Specialized brightness-only color delta for the anti-aliasing detector,
+ * with the center pixel's RGBA hoisted out of the neighbor loop.
+ * @param {Uint8Array | Uint8ClampedArray} img
+ * @param {number} k center pixel offset
+ * @param {number} m neighbor pixel offset
+ * @param {number} r1
+ * @param {number} g1
+ * @param {number} b1
+ * @param {number} a1
+ */
+function brightnessDelta(img, k, m, r1, g1, b1, a1) {
+    const r2 = img[m];
+    const g2 = img[m + 1];
+    const b2 = img[m + 2];
+    const a2 = img[m + 3];
+
+    let dr = r1 - r2;
+    let dg = g1 - g2;
+    let db = b1 - b2;
+    const da = a1 - a2;
+
+    if (!dr && !dg && !db && !da) return 0;
+
+    if (a1 < 255 || a2 < 255) {
+        const rb = 48 + 159 * (k % 2);
+        const gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
+        const bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
+        dr = (r1 * a1 - r2 * a2 - rb * da) / 255;
+        dg = (g1 * a1 - g2 * a2 - gb * da) / 255;
+        db = (b1 * a1 - b2 * a2 - bb * da) / 255;
+    }
+
+    return dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
+}
+
+/**
  * @param {Uint8Array | Uint8ClampedArray} output
  * @param {number} pos
  * @param {number} r
@@ -253,7 +285,7 @@ function colorDelta(img1, img2, k, m, yOnly) {
  * @param {number} b
  */
 function drawPixel(output, pos, r, g, b) {
-    output[pos + 0] = r;
+    output[pos] = r;
     output[pos + 1] = g;
     output[pos + 2] = b;
     output[pos + 3] = 255;
