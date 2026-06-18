@@ -24,7 +24,11 @@ Implements ideas from the following papers:
 - [Measuring perceived color difference using YIQ NTSC transmission color space in mobile applications](https://www.spiedigitallibrary.org/conference-proceedings-of-spie/8011/80119D/Simple-perceptual-color-space-for-color-specification-and-real-time/10.1117/12.901997.full) (2010, Yuriy Kotsarenko, Fernando Ramos)
 - [Anti-aliased pixel and intensity slope detector](https://www.researchgate.net/publication/234126755_Anti-aliased_Pixel_and_Intensity_Slope_Detector) (2009, Vytautas Vyšniauskas)
 
-## [Demo](https://observablehq.com/@mourner/pixelmatch-demo)
+## Demo
+
+[observablehq](https://observablehq.com/@mourner/pixelmatch-demo)
+
+[Github page](https://mapbox.github.io/pixelmatch/demo)
 
 ## Example output
 
@@ -105,7 +109,7 @@ Or use in the browser from a CDN:
 
 ```html
 <script type="module">
-	import pixelmatch from 'https://esm.run/pixelmatch';
+ import pixelmatch from 'https://esm.run/pixelmatch';
 ```
 
 ## [Changelog](https://github.com/mapbox/pixelmatch/releases)
