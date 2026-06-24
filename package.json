@@ -1,6 +1,6 @@
 {
   "name": "pixelmatch",
-  "version": "7.2.0",
+  "version": "7.2.1",
   "type": "module",
   "description": "The smallest and fastest pixel-level image comparison library.",
   "main": "index.js",
@@ -38,5 +38,8 @@
   "bugs": {
     "url": "https://github.com/mapbox/pixelmatch/issues"
   },
-  "homepage": "https://github.com/mapbox/pixelmatch#readme"
+  "homepage": "https://github.com/mapbox/pixelmatch#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }
