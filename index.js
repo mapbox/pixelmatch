@@ -118,10 +118,10 @@ function isPixelData(arr) {
  * @param {boolean} checkerboard
  */
 function antialiased(img, x1, y1, width, height, a32, b32, checkerboard) {
-    const x0 = Math.max(x1 - 1, 0);
-    const y0 = Math.max(y1 - 1, 0);
-    const x2 = Math.min(x1 + 1, width - 1);
-    const y2 = Math.min(y1 + 1, height - 1);
+    const x0 = x1 > 0 ? x1 - 1 : 0;
+    const y0 = y1 > 0 ? y1 - 1 : 0;
+    const x2 = x1 < width - 1 ? x1 + 1 : width - 1;
+    const y2 = y1 < height - 1 ? y1 + 1 : height - 1;
     const pos4 = (y1 * width + x1) * 4;
     // cache the center pixel's RGBA once instead of re-reading it on every neighbor comparison
     const cr = img[pos4];
@@ -185,18 +185,32 @@ function antialiased(img, x1, y1, width, height, a32, b32, checkerboard) {
  * @param {number} height
  */
 function hasManySiblings(img, x1, y1, width, height) {
-    const x0 = Math.max(x1 - 1, 0);
-    const y0 = Math.max(y1 - 1, 0);
-    const x2 = Math.min(x1 + 1, width - 1);
-    const y2 = Math.min(y1 + 1, height - 1);
-    const val = img[y1 * width + x1];
+    const pos1 = y1 * width + x1;
+    const val = img[pos1];
+
+    if (x1 > 0 && x1 < width - 1 && y1 > 0 && y1 < height - 1) {
+        return +(val === img[pos1 - width - 1]) +
+               +(val === img[pos1 - 1]) +
+               +(val === img[pos1 + width - 1]) +
+               +(val === img[pos1 - width]) +
+               +(val === img[pos1 + width]) +
+               +(val === img[pos1 - width + 1]) +
+               +(val === img[pos1 + 1]) +
+               +(val === img[pos1 + width + 1]) > 2;
+    }
+
+    const x0 = x1 > 0 ? x1 - 1 : 0;
+    const y0 = y1 > 0 ? y1 - 1 : 0;
+    const x2 = x1 < width - 1 ? x1 + 1 : width - 1;
+    const y2 = y1 < height - 1 ? y1 + 1 : height - 1;
     let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
 
     // go through 8 adjacent pixels
     for (let x = x0; x <= x2; x++) {
-        for (let y = y0; y <= y2; y++) {
+        let pos = y0 * width + x;
+        for (let y = y0; y <= y2; y++, pos += width) {
             if (x === x1 && y === y1) continue;
-            zeroes += +(val === img[y * width + x]);
+            zeroes += +(val === img[pos]);
             if (zeroes > 2) return true;
         }
     }
