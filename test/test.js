@@ -26,6 +26,19 @@ diffTest('6a', '6a', '6empty', {threshold: 0}, 0);
 diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2348);
 diffTest('8a', '5b', '8diff', options, 32896);
 
+test('OKLab metric separates the #127 color pairs at the default threshold', () => {
+    // https://github.com/mapbox/pixelmatch/issues/127 — YIQ scored these near-identically;
+    // OKLab HyAB separates them. Normalized so black↔white = 1.0, default threshold = 0.1.
+    const pair = (r1, g1, b1, r2, g2, b2) => match(
+        new Uint8Array([r1, g1, b1, 255]),
+        new Uint8Array([r2, g2, b2, 255]), null, 1, 1);
+
+    assert.equal(pair(41, 56, 157, 41, 56, 0), 1, 'very different (HyAB ~0.315)');
+    assert.equal(pair(39, 44, 92, 39, 44, 14), 1, 'clearly different (HyAB ~0.167)');
+    assert.equal(pair(0, 254, 252, 94, 254, 252), 0, 'nearly identical (HyAB ~0.034)');
+    assert.equal(pair(0, 254, 252, 47, 254, 252), 0, 'imperceptible (HyAB ~0.009)');
+});
+
 test('checkerboard: false blends semi-transparent pixels against white', () => {
     // These two pixels are visually identical composited on white but differ on a dark checkerboard
     const img1 = new Uint8Array([0, 0, 0, 128]);      // 50% transparent black
