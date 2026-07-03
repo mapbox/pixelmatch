@@ -252,6 +252,15 @@ function cbrtLUT(x) {
     return CBRT[i] + (CBRT[i + 1] - CBRT[i]) * (t - i);
 }
 
+// direct-mapped cache for opaque RGB -> cube-rooted LMS values
+const OKLAB_CACHE_BITS = 12;
+const OKLAB_CACHE_SHIFT = 32 - OKLAB_CACHE_BITS;
+const OKLAB_CACHE_SIZE = 1 << OKLAB_CACHE_BITS;
+const OKLAB_CACHE_KEYS = new Uint32Array(OKLAB_CACHE_SIZE);
+const OKLAB_CACHE_L = new Float64Array(OKLAB_CACHE_SIZE);
+const OKLAB_CACHE_M = new Float64Array(OKLAB_CACHE_SIZE);
+const OKLAB_CACHE_S = new Float64Array(OKLAB_CACHE_SIZE);
+
 /**
  * Calculate the perceptual color difference between two pixels using the OKLab color space
  * (Björn Ottosson, 2020, https://bottosson.github.io/posts/oklab/) with the HyAB metric
@@ -281,17 +290,59 @@ function colorDelta(img1, img2, k, m, checkerboard, maxDelta) {
     const a2 = img2[m + 3];
 
     if (a1 === 255 && a2 === 255) { // fast path for opaque colors
-        const l1 = cbrtLUT(L_R[r1] + L_G[g1] + L_B[b1]);
-        const m1 = cbrtLUT(M_R[r1] + M_G[g1] + M_B[b1]);
-        const s1 = cbrtLUT(S_R[r1] + S_G[g1] + S_B[b1]);
-        const l2 = cbrtLUT(L_R[r2] + L_G[g2] + L_B[b2]);
-        const m2 = cbrtLUT(M_R[r2] + M_G[g2] + M_B[b2]);
-        const s2 = cbrtLUT(S_R[r2] + S_G[g2] + S_B[b2]);
-
-        return oklabHyabDelta(l1 - l2, m1 - m2, s1 - s2, maxDelta);
+        return colorDeltaOpaque(r1, g1, b1, r2, g2, b2, maxDelta);
     }
 
     return colorDeltaTransparent(r1, g1, b1, a1, r2, g2, b2, a2, k, checkerboard, maxDelta);
+}
+
+/**
+ * @param {number} r1
+ * @param {number} g1
+ * @param {number} b1
+ * @param {number} r2
+ * @param {number} g2
+ * @param {number} b2
+ * @param {number} maxDelta
+ */
+function colorDeltaOpaque(r1, g1, b1, r2, g2, b2, maxDelta) {
+    const key1 = (r1 << 16) | (g1 << 8) | b1;
+    const slot1 = Math.imul(key1, 0x9e3779b1) >>> OKLAB_CACHE_SHIFT;
+    const stored1 = key1 + 1;
+    let l1, m1, s1;
+    if (OKLAB_CACHE_KEYS[slot1] === stored1) {
+        l1 = OKLAB_CACHE_L[slot1];
+        m1 = OKLAB_CACHE_M[slot1];
+        s1 = OKLAB_CACHE_S[slot1];
+    } else {
+        l1 = cbrtLUT(L_R[r1] + L_G[g1] + L_B[b1]);
+        m1 = cbrtLUT(M_R[r1] + M_G[g1] + M_B[b1]);
+        s1 = cbrtLUT(S_R[r1] + S_G[g1] + S_B[b1]);
+        OKLAB_CACHE_KEYS[slot1] = stored1;
+        OKLAB_CACHE_L[slot1] = l1;
+        OKLAB_CACHE_M[slot1] = m1;
+        OKLAB_CACHE_S[slot1] = s1;
+    }
+
+    const key2 = (r2 << 16) | (g2 << 8) | b2;
+    const slot2 = Math.imul(key2, 0x9e3779b1) >>> OKLAB_CACHE_SHIFT;
+    const stored2 = key2 + 1;
+    let l2, m2, s2;
+    if (OKLAB_CACHE_KEYS[slot2] === stored2) {
+        l2 = OKLAB_CACHE_L[slot2];
+        m2 = OKLAB_CACHE_M[slot2];
+        s2 = OKLAB_CACHE_S[slot2];
+    } else {
+        l2 = cbrtLUT(L_R[r2] + L_G[g2] + L_B[b2]);
+        m2 = cbrtLUT(M_R[r2] + M_G[g2] + M_B[b2]);
+        s2 = cbrtLUT(S_R[r2] + S_G[g2] + S_B[b2]);
+        OKLAB_CACHE_KEYS[slot2] = stored2;
+        OKLAB_CACHE_L[slot2] = l2;
+        OKLAB_CACHE_M[slot2] = m2;
+        OKLAB_CACHE_S[slot2] = s2;
+    }
+
+    return oklabHyabDelta(l1 - l2, m1 - m2, s1 - s2, maxDelta);
 }
 
 /**
