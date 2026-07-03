@@ -8,22 +8,22 @@ import match from '../index.js';
 
 const options = {threshold: 0.05};
 
-diffTest('1a', '1b', '1diff', options, 143);
-diffTest('1a', '1b', '1diffdefaultthreshold', {threshold: undefined}, 106);
-diffTest('1a', '1b', '1diffmask', {threshold: 0.05, includeAA: false, diffMask: true}, 143);
+diffTest('1a', '1b', '1diff', options, 162);
+diffTest('1a', '1b', '1diffdefaultthreshold', {threshold: undefined}, 116);
+diffTest('1a', '1b', '1diffmask', {threshold: 0.05, includeAA: false, diffMask: true}, 162);
 diffTest('1a', '1a', '1emptydiffmask', {threshold: 0, diffMask: true}, 0);
 diffTest('2a', '2b', '2diff', {
     threshold: 0.05,
     alpha: 0.5,
     aaColor: [0, 192, 0],
     diffColor: [255, 0, 255]
-}, 12437);
-diffTest('3a', '3b', '3diff', options, 212);
-diffTest('4a', '4b', '4diff', options, 36049);
+}, 12427);
+diffTest('3a', '3b', '3diff', options, 210);
+diffTest('4a', '4b', '4diff', options, 36188);
 diffTest('5a', '5b', '5diff', options, 6);
 diffTest('6a', '6b', '6diff', options, 51);
 diffTest('6a', '6a', '6empty', {threshold: 0}, 0);
-diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2448);
+diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2348);
 diffTest('8a', '5b', '8diff', options, 32896);
 
 test('checkerboard: false blends semi-transparent pixels against white', () => {

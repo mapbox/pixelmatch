@@ -53,9 +53,9 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
         return 0;
     }
 
-    // maximum acceptable square distance between two colors;
-    // 35215 is the maximum possible value for the YIQ difference metric
-    const maxDelta = 35215 * threshold * threshold;
+    // maximum acceptable OKLab HyAB distance between two colors;
+    // 1.0 is the HyAB distance between black and white
+    const maxDelta = threshold;
     const [aaR, aaG, aaB] = aaColor;
     const [diffR, diffG, diffB] = diffColor;
     const [altR, altG, altB] = diffColorAlt || diffColor;
@@ -63,11 +63,11 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
 
     // compare each pixel of one image against the other one
     for (let i = 0, pos = 0; i < len; i++, pos += 4) {
-        // squared YUV distance between colors at this pixel position, negative if the img2 pixel is darker
-        const delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos, checkerboard);
+        // whether the HyAB OKLab distance exceeds the threshold: 0 if not, ±1 if yes (negative if img2 pixel is darker)
+        const delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos, checkerboard, maxDelta);
 
         // the color difference is above the threshold
-        if (Math.abs(delta) > maxDelta) {
+        if (delta) {
             const x = i % width;
             const y = (i / width) | 0;
             // check it's a real rendering difference or just anti-aliasing
@@ -201,30 +201,61 @@ function hasManySiblings(img, x1, y1, width, height) {
     return false;
 }
 
+// sRGB [0..255] -> linear [0..1] lookup table (padded with a 257th entry for interpolation)
+const LIN = new Float64Array(257);
+for (let i = 0; i < 256; i++) {
+    const c = i / 255;
+    LIN[i] = c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+}
+LIN[256] = LIN[255];
+
+// sRGB->linear for a fractional [0..255] channel value via linear interpolation of LIN
+/** @param {number} x */
+function linLUT(x) {
+    const i = x | 0;
+    return LIN[i] + (LIN[i + 1] - LIN[i]) * (x - i);
+}
+
+// cube root over [0..1] via lookup table with linear interpolation
+const CBRT_N = 4096;
+const CBRT = new Float64Array(CBRT_N + 2);
+for (let i = 0; i <= CBRT_N + 1; i++) CBRT[i] = Math.cbrt(i / CBRT_N);
+/** @param {number} x */
+function cbrtLUT(x) {
+    const t = x * CBRT_N;
+    const i = t | 0;
+    return CBRT[i] + (CBRT[i + 1] - CBRT[i]) * (t - i);
+}
+
 /**
- * Calculate color difference according to the paper "Measuring perceived color difference
- * using YIQ NTSC transmission color space in mobile applications" by Y. Kotsarenko and F. Ramos.
+ * Calculate the perceptual color difference between two pixels using the OKLab color space
+ * (Björn Ottosson, 2020, https://bottosson.github.io/posts/oklab/) with the HyAB metric
+ * (|ΔL| + √(Δa² + Δb²); Abasi et al. 2019), which tracks large color differences well.
  * Caller guarantees the two pixels differ, so the early-zero check is omitted.
+ *
+ * The HyAB sqrt is avoided by folding the threshold test in: the distance stays below `maxDelta`
+ * iff |ΔL| <= maxDelta and Δa² + Δb² <= (maxDelta − |ΔL|)². The return value is only used for
+ * the threshold comparison and the brighter/darker sign, so it's just 0 / ±1.
+ *
  * @param {Uint8Array | Uint8ClampedArray} img1
  * @param {Uint8Array | Uint8ClampedArray} img2
  * @param {number} k
  * @param {number} m
  * @param {boolean} checkerboard
+ * @param {number} maxDelta maximum acceptable HyAB distance
+ * @return {number} 0 if below the threshold, otherwise ±1 (negative if the img2 pixel is brighter)
  */
-function colorDelta(img1, img2, k, m, checkerboard) {
-    const r1 = img1[k];
-    const g1 = img1[k + 1];
-    const b1 = img1[k + 2];
+function colorDelta(img1, img2, k, m, checkerboard, maxDelta) {
+    let r1 = img1[k];
+    let g1 = img1[k + 1];
+    let b1 = img1[k + 2];
     const a1 = img1[k + 3];
-    const r2 = img2[m];
-    const g2 = img2[m + 1];
-    const b2 = img2[m + 2];
+    let r2 = img2[m];
+    let g2 = img2[m + 1];
+    let b2 = img2[m + 2];
     const a2 = img2[m + 3];
 
-    let dr = r1 - r2;
-    let dg = g1 - g2;
-    let db = b1 - b2;
-    const da = a1 - a2;
+    let lr1, lg1, lb1, lr2, lg2, lb2;
 
     if (a1 < 255 || a2 < 255) { // blend pixels with background
         let rb = 255, gb = 255, bb = 255;
@@ -233,24 +264,51 @@ function colorDelta(img1, img2, k, m, checkerboard) {
             gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
             bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
         }
-        dr = (r1 * a1 - r2 * a2 - rb * da) / 255;
-        dg = (g1 * a1 - g2 * a2 - gb * da) / 255;
-        db = (b1 * a1 - b2 * a2 - bb * da) / 255;
+        // blended channel values are fractional, so interpolate the sRGB->linear LUT
+        r1 = (r1 * a1 + rb * (255 - a1)) / 255;
+        g1 = (g1 * a1 + gb * (255 - a1)) / 255;
+        b1 = (b1 * a1 + bb * (255 - a1)) / 255;
+        r2 = (r2 * a2 + rb * (255 - a2)) / 255;
+        g2 = (g2 * a2 + gb * (255 - a2)) / 255;
+        b2 = (b2 * a2 + bb * (255 - a2)) / 255;
+        lr1 = linLUT(r1); lg1 = linLUT(g1); lb1 = linLUT(b1);
+        lr2 = linLUT(r2); lg2 = linLUT(g2); lb2 = linLUT(b2);
+    } else {
+        lr1 = LIN[r1]; lg1 = LIN[g1]; lb1 = LIN[b1];
+        lr2 = LIN[r2]; lg2 = LIN[g2]; lb2 = LIN[b2];
     }
 
-    const y = dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
-    const i = dr * 0.59597799 - dg * 0.27417610 - db * 0.32180189;
-    const q = dr * 0.21147017 - dg * 0.52261711 + db * 0.31114694;
+    const l1 = cbrtLUT(0.4122214708 * lr1 + 0.5363325363 * lg1 + 0.0514459929 * lb1);
+    const m1 = cbrtLUT(0.2119034982 * lr1 + 0.6806995451 * lg1 + 0.1073969566 * lb1);
+    const s1 = cbrtLUT(0.0883024619 * lr1 + 0.2817188376 * lg1 + 0.6299787005 * lb1);
+    const l2 = cbrtLUT(0.4122214708 * lr2 + 0.5363325363 * lg2 + 0.0514459929 * lb2);
+    const m2 = cbrtLUT(0.2119034982 * lr2 + 0.6806995451 * lg2 + 0.1073969566 * lb2);
+    const s2 = cbrtLUT(0.0883024619 * lr2 + 0.2817188376 * lg2 + 0.6299787005 * lb2);
 
-    const delta = 0.5053 * y * y + 0.299 * i * i + 0.1957 * q * q;
+    const dl = l1 - l2, dm = m1 - m2, ds = s1 - s2;
+    const dL = 0.2104542553 * dl + 0.7936177850 * dm - 0.0040720468 * ds;
+
+    // HyAB distance = |dL| + sqrt(da^2 + db^2); compare against maxDelta without the sqrt:
+    // it stays below the threshold iff |dL| <= maxDelta and da^2 + db^2 <= (maxDelta - |dL|)^2
+    const rest = maxDelta - Math.abs(dL);
+    if (rest > 0) {
+        const da = 1.9779984951 * dl - 2.4285922050 * dm + 0.4505937099 * ds;
+        const db = 0.0259040371 * dl + 0.7827717662 * dm - 0.8086757660 * ds;
+        if (da * da + db * db <= rest * rest) return 0;
+    }
 
     // encode whether the pixel lightens or darkens in the sign
-    return y > 0 ? -delta : delta;
+    return dL > 0 ? -1 : 1;
 }
 
 /**
  * Specialized brightness-only color delta for the anti-aliasing detector,
  * with the center pixel's RGBA hoisted out of the neighbor loop.
+ *
+ * Intentionally stays on gamma-space Rec.601 luma rather than OKLab ΔL used by `colorDelta`:
+ * the detector only needs a cheap, monotonic scalar to find the intensity ramp direction
+ * (darkest/brightest neighbor), and switching to ΔL both regressed AA detection on dark regions
+ * and was much slower (called up to 16× per candidate pixel).
  * @param {Uint8Array | Uint8ClampedArray} img
  * @param {number} k center pixel offset
  * @param {number} m neighbor pixel offset
