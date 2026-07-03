@@ -266,24 +266,28 @@ function cbrtLUT(x) {
     return CBRT[i] + (CBRT[i + 1] - CBRT[i]) * (t - i);
 }
 
-// direct-mapped cache for opaque RGB -> cube-rooted LMS values
+// direct-mapped cache for opaque RGB -> cube-rooted LMS values and toe-corrected OKLab lightness
 const OKLAB_CACHE_BITS = 12;
 const OKLAB_CACHE_SHIFT = 32 - OKLAB_CACHE_BITS;
 const OKLAB_CACHE_SIZE = 1 << OKLAB_CACHE_BITS;
 const OKLAB_CACHE_KEYS = new Uint32Array(OKLAB_CACHE_SIZE);
-const OKLAB_CACHE_L = new Float64Array(OKLAB_CACHE_SIZE);
-const OKLAB_CACHE_M = new Float64Array(OKLAB_CACHE_SIZE);
-const OKLAB_CACHE_S = new Float64Array(OKLAB_CACHE_SIZE);
+const OKLAB_CACHE_VALUES = new Float64Array(OKLAB_CACHE_SIZE * 4);
+
+const TOE_K1 = 0.206;
+const TOE_K2 = 0.03;
+const TOE_K3 = (1 + TOE_K1) / (1 + TOE_K2);
 
 /**
  * Calculate the perceptual color difference between two pixels using the OKLab color space
  * (Björn Ottosson, 2020, https://bottosson.github.io/posts/oklab/) with the HyAB metric
- * (|ΔL| + √(Δa² + Δb²); Abasi et al. 2019), which tracks large color differences well.
+ * (|ΔLr| + √(Δa² + Δb²); Abasi et al. 2019), which tracks large color differences well.
+ * The Lr lightness is Ottosson's toe-corrected OKLab lightness, which avoids over-expanding
+ * near-black image/display differences while preserving the black-white 0..1 scale.
  * Caller guarantees the two pixels differ, so the early-zero check is omitted.
  *
  * The HyAB sqrt is avoided by folding the threshold test in: the distance stays below `maxDelta`
- * iff |ΔL| <= maxDelta and Δa² + Δb² <= (maxDelta − |ΔL|)². The return value is only used for
- * the threshold comparison and the brighter/darker sign, so it's just 0 / ±1.
+ * iff |ΔLr| <= maxDelta and Δa² + Δb² <= (maxDelta − |ΔLr|)². The return value is only used
+ * for the threshold comparison and the brighter/darker sign, so it's just 0 / ±1.
  *
  * @param {Uint8Array | Uint8ClampedArray} img1
  * @param {Uint8Array | Uint8ClampedArray} img2
@@ -291,7 +295,7 @@ const OKLAB_CACHE_S = new Float64Array(OKLAB_CACHE_SIZE);
  * @param {number} m
  * @param {boolean} checkerboard
  * @param {number} maxDelta maximum acceptable HyAB distance
- * @return {number} 0 if below the threshold, otherwise ±1 (negative if the img2 pixel is brighter)
+ * @return {number} 0 if below the threshold, otherwise ±1 (negative if the img2 pixel is darker)
  */
 function colorDelta(img1, img2, k, m, checkerboard, maxDelta) {
     const r1 = img1[k];
@@ -323,40 +327,48 @@ function colorDeltaOpaque(r1, g1, b1, r2, g2, b2, maxDelta) {
     const key1 = (r1 << 16) | (g1 << 8) | b1;
     const slot1 = Math.imul(key1, 0x9e3779b1) >>> OKLAB_CACHE_SHIFT;
     const stored1 = key1 + 1;
-    let l1, m1, s1;
+    const offset1 = slot1 * 4;
+    let l1, m1, s1, lr1;
     if (OKLAB_CACHE_KEYS[slot1] === stored1) {
-        l1 = OKLAB_CACHE_L[slot1];
-        m1 = OKLAB_CACHE_M[slot1];
-        s1 = OKLAB_CACHE_S[slot1];
+        l1 = OKLAB_CACHE_VALUES[offset1];
+        m1 = OKLAB_CACHE_VALUES[offset1 + 1];
+        s1 = OKLAB_CACHE_VALUES[offset1 + 2];
+        lr1 = OKLAB_CACHE_VALUES[offset1 + 3];
     } else {
         l1 = cbrtLUT(L_R[r1] + L_G[g1] + L_B[b1]);
         m1 = cbrtLUT(M_R[r1] + M_G[g1] + M_B[b1]);
         s1 = cbrtLUT(S_R[r1] + S_G[g1] + S_B[b1]);
+        lr1 = toe(0.2104542553 * l1 + 0.7936177850 * m1 - 0.0040720468 * s1);
         OKLAB_CACHE_KEYS[slot1] = stored1;
-        OKLAB_CACHE_L[slot1] = l1;
-        OKLAB_CACHE_M[slot1] = m1;
-        OKLAB_CACHE_S[slot1] = s1;
+        OKLAB_CACHE_VALUES[offset1] = l1;
+        OKLAB_CACHE_VALUES[offset1 + 1] = m1;
+        OKLAB_CACHE_VALUES[offset1 + 2] = s1;
+        OKLAB_CACHE_VALUES[offset1 + 3] = lr1;
     }
 
     const key2 = (r2 << 16) | (g2 << 8) | b2;
     const slot2 = Math.imul(key2, 0x9e3779b1) >>> OKLAB_CACHE_SHIFT;
     const stored2 = key2 + 1;
-    let l2, m2, s2;
+    const offset2 = slot2 * 4;
+    let l2, m2, s2, lr2;
     if (OKLAB_CACHE_KEYS[slot2] === stored2) {
-        l2 = OKLAB_CACHE_L[slot2];
-        m2 = OKLAB_CACHE_M[slot2];
-        s2 = OKLAB_CACHE_S[slot2];
+        l2 = OKLAB_CACHE_VALUES[offset2];
+        m2 = OKLAB_CACHE_VALUES[offset2 + 1];
+        s2 = OKLAB_CACHE_VALUES[offset2 + 2];
+        lr2 = OKLAB_CACHE_VALUES[offset2 + 3];
     } else {
         l2 = cbrtLUT(L_R[r2] + L_G[g2] + L_B[b2]);
         m2 = cbrtLUT(M_R[r2] + M_G[g2] + M_B[b2]);
         s2 = cbrtLUT(S_R[r2] + S_G[g2] + S_B[b2]);
+        lr2 = toe(0.2104542553 * l2 + 0.7936177850 * m2 - 0.0040720468 * s2);
         OKLAB_CACHE_KEYS[slot2] = stored2;
-        OKLAB_CACHE_L[slot2] = l2;
-        OKLAB_CACHE_M[slot2] = m2;
-        OKLAB_CACHE_S[slot2] = s2;
+        OKLAB_CACHE_VALUES[offset2] = l2;
+        OKLAB_CACHE_VALUES[offset2 + 1] = m2;
+        OKLAB_CACHE_VALUES[offset2 + 2] = s2;
+        OKLAB_CACHE_VALUES[offset2 + 3] = lr2;
     }
 
-    return oklabHyabDelta(l1 - l2, m1 - m2, s1 - s2, maxDelta);
+    return oklabHyabDelta(lr1 - lr2, l1 - l2, m1 - m2, s1 - s2, maxDelta);
 }
 
 /**
@@ -396,22 +408,23 @@ function colorDeltaTransparent(r1, g1, b1, a1, r2, g2, b2, a2, k, checkerboard, 
     const l2 = cbrtLUT(0.4122214708 * lr2 + 0.5363325363 * lg2 + 0.0514459929 * lb2);
     const m2 = cbrtLUT(0.2119034982 * lr2 + 0.6806995451 * lg2 + 0.1073969566 * lb2);
     const s2 = cbrtLUT(0.0883024619 * lr2 + 0.2817188376 * lg2 + 0.6299787005 * lb2);
+    const Lr1 = toe(0.2104542553 * l1 + 0.7936177850 * m1 - 0.0040720468 * s1);
+    const Lr2 = toe(0.2104542553 * l2 + 0.7936177850 * m2 - 0.0040720468 * s2);
 
-    return oklabHyabDelta(l1 - l2, m1 - m2, s1 - s2, maxDelta);
+    return oklabHyabDelta(Lr1 - Lr2, l1 - l2, m1 - m2, s1 - s2, maxDelta);
 }
 
 /**
+ * @param {number} dLr
  * @param {number} dl
  * @param {number} dm
  * @param {number} ds
  * @param {number} maxDelta
  */
-function oklabHyabDelta(dl, dm, ds, maxDelta) {
-    const dL = 0.2104542553 * dl + 0.7936177850 * dm - 0.0040720468 * ds;
-
-    // HyAB distance = |dL| + sqrt(da^2 + db^2); compare against maxDelta without the sqrt:
-    // it stays below the threshold iff |dL| <= maxDelta and da^2 + db^2 <= (maxDelta - |dL|)^2
-    const rest = maxDelta - Math.abs(dL);
+function oklabHyabDelta(dLr, dl, dm, ds, maxDelta) {
+    // HyAB distance = |dLr| + sqrt(da^2 + db^2); compare against maxDelta without the sqrt:
+    // it stays below the threshold iff |dLr| <= maxDelta and da^2 + db^2 <= (maxDelta - |dLr|)^2
+    const rest = maxDelta - Math.abs(dLr);
     if (rest > 0) {
         const da = 1.9779984951 * dl - 2.4285922050 * dm + 0.4505937099 * ds;
         const db = 0.0259040371 * dl + 0.7827717662 * dm - 0.8086757660 * ds;
@@ -419,7 +432,15 @@ function oklabHyabDelta(dl, dm, ds, maxDelta) {
     }
 
     // encode whether the pixel lightens or darkens in the sign
-    return dL > 0 ? -1 : 1;
+    return dLr > 0 ? -1 : 1;
+}
+
+/**
+ * @param {number} L
+ */
+function toe(L) {
+    const x = TOE_K3 * L - TOE_K1;
+    return 0.5 * (x + Math.sqrt(x * x + 4 * TOE_K2 * TOE_K3 * L));
 }
 
 /**

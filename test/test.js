@@ -8,35 +8,42 @@ import match from '../index.js';
 
 const options = {threshold: 0.05};
 
-diffTest('1a', '1b', '1diff', options, 162);
-diffTest('1a', '1b', '1diffdefaultthreshold', {threshold: undefined}, 116);
-diffTest('1a', '1b', '1diffmask', {threshold: 0.05, includeAA: false, diffMask: true}, 162);
+diffTest('1a', '1b', '1diff', options, 154);
+diffTest('1a', '1b', '1diffdefaultthreshold', {threshold: undefined}, 120);
+diffTest('1a', '1b', '1diffmask', {threshold: 0.05, includeAA: false, diffMask: true}, 154);
 diffTest('1a', '1a', '1emptydiffmask', {threshold: 0, diffMask: true}, 0);
 diffTest('2a', '2b', '2diff', {
     threshold: 0.05,
     alpha: 0.5,
     aaColor: [0, 192, 0],
     diffColor: [255, 0, 255]
-}, 12427);
-diffTest('3a', '3b', '3diff', options, 210);
-diffTest('4a', '4b', '4diff', options, 36188);
+}, 12821);
+diffTest('3a', '3b', '3diff', options, 220);
+diffTest('4a', '4b', '4diff', options, 36563);
 diffTest('5a', '5b', '5diff', options, 6);
 diffTest('6a', '6b', '6diff', options, 51);
 diffTest('6a', '6a', '6empty', {threshold: 0}, 0);
-diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2348);
+diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2440);
 diffTest('8a', '5b', '8diff', options, 32896);
+
+test('OKLab metric uses Lr toe correction for near-black differences', () => {
+    const pixel = gray => new Uint8Array([gray, gray, gray, 255]);
+
+    assert.equal(match(pixel(0), pixel(13), null, 1, 1), 0);
+    assert.equal(match(pixel(0), pixel(23), null, 1, 1), 1);
+});
 
 test('OKLab metric separates the #127 color pairs at the default threshold', () => {
     // https://github.com/mapbox/pixelmatch/issues/127 — YIQ scored these near-identically;
-    // OKLab HyAB separates them. Normalized so black↔white = 1.0, default threshold = 0.1.
+    // OKLab Lr HyAB separates them. Normalized so black↔white = 1.0, default threshold = 0.1.
     const pair = (r1, g1, b1, r2, g2, b2) => match(
         new Uint8Array([r1, g1, b1, 255]),
         new Uint8Array([r2, g2, b2, 255]), null, 1, 1);
 
-    assert.equal(pair(41, 56, 157, 41, 56, 0), 1, 'very different (HyAB ~0.315)');
-    assert.equal(pair(39, 44, 92, 39, 44, 14), 1, 'clearly different (HyAB ~0.167)');
-    assert.equal(pair(0, 254, 252, 94, 254, 252), 0, 'nearly identical (HyAB ~0.034)');
-    assert.equal(pair(0, 254, 252, 47, 254, 252), 0, 'imperceptible (HyAB ~0.009)');
+    assert.equal(pair(41, 56, 157, 41, 56, 0), 1, 'very different');
+    assert.equal(pair(39, 44, 92, 39, 44, 14), 1, 'clearly different');
+    assert.equal(pair(0, 254, 252, 94, 254, 252), 0, 'nearly identical');
+    assert.equal(pair(0, 254, 252, 47, 254, 252), 0, 'imperceptible');
 });
 
 test('checkerboard: false blends semi-transparent pixels against white', () => {
