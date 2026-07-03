@@ -211,6 +211,29 @@ for (let i = 0; i < 256; i++) {
 }
 LIN[256] = LIN[255];
 
+// premultiplied LMS matrix contributions for opaque sRGB byte values
+const L_R = new Float64Array(256);
+const L_G = new Float64Array(256);
+const L_B = new Float64Array(256);
+const M_R = new Float64Array(256);
+const M_G = new Float64Array(256);
+const M_B = new Float64Array(256);
+const S_R = new Float64Array(256);
+const S_G = new Float64Array(256);
+const S_B = new Float64Array(256);
+for (let i = 0; i < 256; i++) {
+    const lr = LIN[i];
+    L_R[i] = 0.4122214708 * lr;
+    M_R[i] = 0.2119034982 * lr;
+    S_R[i] = 0.0883024619 * lr;
+    L_G[i] = 0.5363325363 * lr;
+    M_G[i] = 0.6806995451 * lr;
+    S_G[i] = 0.2817188376 * lr;
+    L_B[i] = 0.0514459929 * lr;
+    M_B[i] = 0.1073969566 * lr;
+    S_B[i] = 0.6299787005 * lr;
+}
+
 // sRGB->linear for a fractional [0..255] channel value via linear interpolation of LIN
 /** @param {number} x */
 function linLUT(x) {
@@ -248,37 +271,59 @@ function cbrtLUT(x) {
  * @return {number} 0 if below the threshold, otherwise ±1 (negative if the img2 pixel is brighter)
  */
 function colorDelta(img1, img2, k, m, checkerboard, maxDelta) {
-    let r1 = img1[k];
-    let g1 = img1[k + 1];
-    let b1 = img1[k + 2];
+    const r1 = img1[k];
+    const g1 = img1[k + 1];
+    const b1 = img1[k + 2];
     const a1 = img1[k + 3];
-    let r2 = img2[m];
-    let g2 = img2[m + 1];
-    let b2 = img2[m + 2];
+    const r2 = img2[m];
+    const g2 = img2[m + 1];
+    const b2 = img2[m + 2];
     const a2 = img2[m + 3];
 
-    let lr1, lg1, lb1, lr2, lg2, lb2;
+    if (a1 === 255 && a2 === 255) { // fast path for opaque colors
+        const l1 = cbrtLUT(L_R[r1] + L_G[g1] + L_B[b1]);
+        const m1 = cbrtLUT(M_R[r1] + M_G[g1] + M_B[b1]);
+        const s1 = cbrtLUT(S_R[r1] + S_G[g1] + S_B[b1]);
+        const l2 = cbrtLUT(L_R[r2] + L_G[g2] + L_B[b2]);
+        const m2 = cbrtLUT(M_R[r2] + M_G[g2] + M_B[b2]);
+        const s2 = cbrtLUT(S_R[r2] + S_G[g2] + S_B[b2]);
 
-    if (a1 < 255 || a2 < 255) { // blend pixels with background
-        let rb = 255, gb = 255, bb = 255;
-        if (checkerboard) {
-            rb = 48 + 159 * (k % 2);
-            gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
-            bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
-        }
-        // blended channel values are fractional, so interpolate the sRGB->linear LUT
-        r1 = (r1 * a1 + rb * (255 - a1)) / 255;
-        g1 = (g1 * a1 + gb * (255 - a1)) / 255;
-        b1 = (b1 * a1 + bb * (255 - a1)) / 255;
-        r2 = (r2 * a2 + rb * (255 - a2)) / 255;
-        g2 = (g2 * a2 + gb * (255 - a2)) / 255;
-        b2 = (b2 * a2 + bb * (255 - a2)) / 255;
-        lr1 = linLUT(r1); lg1 = linLUT(g1); lb1 = linLUT(b1);
-        lr2 = linLUT(r2); lg2 = linLUT(g2); lb2 = linLUT(b2);
-    } else {
-        lr1 = LIN[r1]; lg1 = LIN[g1]; lb1 = LIN[b1];
-        lr2 = LIN[r2]; lg2 = LIN[g2]; lb2 = LIN[b2];
+        return oklabHyabDelta(l1 - l2, m1 - m2, s1 - s2, maxDelta);
     }
+
+    return colorDeltaTransparent(r1, g1, b1, a1, r2, g2, b2, a2, k, checkerboard, maxDelta);
+}
+
+/**
+ * @param {number} r1
+ * @param {number} g1
+ * @param {number} b1
+ * @param {number} a1
+ * @param {number} r2
+ * @param {number} g2
+ * @param {number} b2
+ * @param {number} a2
+ * @param {number} k
+ * @param {boolean} checkerboard
+ * @param {number} maxDelta
+ */
+function colorDeltaTransparent(r1, g1, b1, a1, r2, g2, b2, a2, k, checkerboard, maxDelta) {
+    // blend pixels with background
+    let rb = 255, gb = 255, bb = 255;
+    if (checkerboard) {
+        rb = 48 + 159 * (k % 2);
+        gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
+        bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
+    }
+    // blended channel values are fractional, so interpolate the sRGB->linear LUT
+    r1 = (r1 * a1 + rb * (255 - a1)) / 255;
+    g1 = (g1 * a1 + gb * (255 - a1)) / 255;
+    b1 = (b1 * a1 + bb * (255 - a1)) / 255;
+    r2 = (r2 * a2 + rb * (255 - a2)) / 255;
+    g2 = (g2 * a2 + gb * (255 - a2)) / 255;
+    b2 = (b2 * a2 + bb * (255 - a2)) / 255;
+    const lr1 = linLUT(r1), lg1 = linLUT(g1), lb1 = linLUT(b1);
+    const lr2 = linLUT(r2), lg2 = linLUT(g2), lb2 = linLUT(b2);
 
     const l1 = cbrtLUT(0.4122214708 * lr1 + 0.5363325363 * lg1 + 0.0514459929 * lb1);
     const m1 = cbrtLUT(0.2119034982 * lr1 + 0.6806995451 * lg1 + 0.1073969566 * lb1);
@@ -287,7 +332,16 @@ function colorDelta(img1, img2, k, m, checkerboard, maxDelta) {
     const m2 = cbrtLUT(0.2119034982 * lr2 + 0.6806995451 * lg2 + 0.1073969566 * lb2);
     const s2 = cbrtLUT(0.0883024619 * lr2 + 0.2817188376 * lg2 + 0.6299787005 * lb2);
 
-    const dl = l1 - l2, dm = m1 - m2, ds = s1 - s2;
+    return oklabHyabDelta(l1 - l2, m1 - m2, s1 - s2, maxDelta);
+}
+
+/**
+ * @param {number} dl
+ * @param {number} dm
+ * @param {number} ds
+ * @param {number} maxDelta
+ */
+function oklabHyabDelta(dl, dm, ds, maxDelta) {
     const dL = 0.2104542553 * dl + 0.7936177850 * dm - 0.0040720468 * ds;
 
     // HyAB distance = |dL| + sqrt(da^2 + db^2); compare against maxDelta without the sqrt:
