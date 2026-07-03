@@ -137,12 +137,14 @@ function antialiased(img, x1, y1, width, height, a32, b32, checkerboard) {
     let maxY = 0;
 
     // go through 8 adjacent pixels
+    const rowStep = width * 4;
     for (let x = x0; x <= x2; x++) {
-        for (let y = y0; y <= y2; y++) {
+        let m = (y0 * width + x) * 4;
+        for (let y = y0; y <= y2; y++, m += rowStep) {
             if (x === x1 && y === y1) continue;
 
             // brightness delta between the center pixel and adjacent one
-            const delta = brightnessDelta(img, pos4, (y * width + x) * 4, cr, cg, cb, ca, checkerboard);
+            const delta = brightnessDelta(img, pos4, m, cr, cg, cb, ca, checkerboard);
 
             // count the number of equal, darker and brighter adjacent pixels
             if (delta === 0) {
