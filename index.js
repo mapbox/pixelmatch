@@ -71,7 +71,7 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
             const x = i % width;
             const y = (i / width) | 0;
             // check it's a real rendering difference or just anti-aliasing
-            const isExcludedAA = !includeAA && (antialiased(img1, x, y, width, height, a32, b32, checkerboard) || antialiased(img2, x, y, width, height, b32, a32, checkerboard));
+            const isExcludedAA = !includeAA && (antialiased(img1, x, y, width, height, a32, b32) || antialiased(img2, x, y, width, height, b32, a32));
             if (isExcludedAA) {
                 // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                 // note that we do not include such pixels in a mask
@@ -115,9 +115,8 @@ function isPixelData(arr) {
  * @param {number} height
  * @param {Uint32Array} a32
  * @param {Uint32Array} b32
- * @param {boolean} checkerboard
  */
-function antialiased(img, x1, y1, width, height, a32, b32, checkerboard) {
+function antialiased(img, x1, y1, width, height, a32, b32) {
     const x0 = x1 > 0 ? x1 - 1 : 0;
     const y0 = y1 > 0 ? y1 - 1 : 0;
     const x2 = x1 < width - 1 ? x1 + 1 : width - 1;
@@ -144,7 +143,7 @@ function antialiased(img, x1, y1, width, height, a32, b32, checkerboard) {
             if (x === x1 && y === y1) continue;
 
             // brightness delta between the center pixel and adjacent one
-            const delta = brightnessDelta(img, pos4, m, cr, cg, cb, ca, checkerboard);
+            const delta = brightnessDelta(img, m, cr, cg, cb, ca);
 
             // count the number of equal, darker and brighter adjacent pixels
             if (delta === 0) {
@@ -451,16 +450,20 @@ function toe(L) {
  * the detector only needs a cheap, monotonic scalar to find the intensity ramp direction
  * (darkest/brightest neighbor), and switching to ΔL both regressed AA detection on dark regions
  * and was much slower (called up to 16× per candidate pixel).
+ *
+ * Semi-transparent pixels are composited over fixed mid-gray rather than the checkerboard
+ * used by `colorDelta`: a ramp structure test needs a deterministic background, and a
+ * pseudo-random per-position one distorts the very ramps it looks for. When the composited
+ * luma delta cancels out exactly but alpha differs, the alpha delta gives the ramp direction,
+ * so only pixels equal in both premultiplied luma and alpha count as equal siblings.
  * @param {Uint8Array | Uint8ClampedArray} img
- * @param {number} k center pixel offset
  * @param {number} m neighbor pixel offset
  * @param {number} r1
  * @param {number} g1
  * @param {number} b1
  * @param {number} a1
- * @param {boolean} checkerboard
  */
-function brightnessDelta(img, k, m, r1, g1, b1, a1, checkerboard) {
+function brightnessDelta(img, m, r1, g1, b1, a1) {
     const r2 = img[m];
     const g2 = img[m + 1];
     const b2 = img[m + 2];
@@ -474,15 +477,11 @@ function brightnessDelta(img, k, m, r1, g1, b1, a1, checkerboard) {
     if (!dr && !dg && !db && !da) return 0;
 
     if (a1 < 255 || a2 < 255) {
-        let rb = 255, gb = 255, bb = 255;
-        if (checkerboard) {
-            rb = 48 + 159 * (k % 2);
-            gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
-            bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
-        }
-        dr = (r1 * a1 - r2 * a2 - rb * da) / 255;
-        dg = (g1 * a1 - g2 * a2 - gb * da) / 255;
-        db = (b1 * a1 - b2 * a2 - bb * da) / 255;
+        dr = (r1 * a1 - r2 * a2 - 128 * da) / 255;
+        dg = (g1 * a1 - g2 * a2 - 128 * da) / 255;
+        db = (b1 * a1 - b2 * a2 - 128 * da) / 255;
+        const d = dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
+        return d === 0 && da ? da / 2 : d;
     }
 
     return dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
