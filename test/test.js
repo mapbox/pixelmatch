@@ -54,6 +54,44 @@ test('checkerboard: false blends semi-transparent pixels against white', () => {
     assert.equal(match(img1, img2, null, 1, 1), 1);
 });
 
+test('windowSize returns the max diff-pixel count over N×N sliding windows', () => {
+    const w = 10, h = 10;
+    const img1 = new Uint8Array(w * h * 4).fill(255);
+    const img2 = new Uint8Array(w * h * 4).fill(255);
+    // dense 3×3 block of black diff pixels at (2,2)–(4,4)
+    for (let y = 2; y < 5; y++) for (let x = 2; x < 5; x++) {
+        const p = (y * w + x) * 4;
+        img2[p] = img2[p + 1] = img2[p + 2] = 0;
+    }
+    // omitted / Infinity: total diff count
+    assert.equal(match(img1, img2, null, w, h, {includeAA: true}), 9);
+    assert.equal(match(img1, img2, null, w, h, {includeAA: true, windowSize: Infinity}), 9);
+    // 3×3 window captures the whole block
+    assert.equal(match(img1, img2, null, w, h, {includeAA: true, windowSize: 3}), 9);
+    // 2×2 window captures at most 4
+    assert.equal(match(img1, img2, null, w, h, {includeAA: true, windowSize: 2}), 4);
+    // window larger than the image is clamped, still finds all 9
+    assert.equal(match(img1, img2, null, w, h, {includeAA: true, windowSize: 100}), 9);
+    // identical images return 0 in windowed mode
+    assert.equal(match(img1, img1, null, w, h, {windowSize: 3}), 0);
+});
+
+test('windowSize on a real fixture (6a/6b, 256×256, 51 diff pixels)', () => {
+    const img1 = readImage('6a');
+    const img2 = readImage('6b');
+    const {width, height} = img1;
+    const opts = {threshold: 0.05};
+    const total = match(img1.data, img2.data, null, width, height, opts);
+    assert.equal(total, 51); // matches the 6diff fixture test
+    // a square window at least as large as the image is the degenerate whole-image
+    // window, so it must equal the total count
+    assert.equal(match(img1.data, img2.data, null, width, height, {...opts, windowSize: width}), total);
+    assert.equal(match(img1.data, img2.data, null, width, height, {...opts, windowSize: 100000}), total);
+    // smaller windows contain a subset of the diffs, but never more than the total
+    assert.equal(match(img1.data, img2.data, null, width, height, {...opts, windowSize: 32}), 29);
+    assert.equal(match(img1.data, img2.data, null, width, height, {...opts, windowSize: 8}), 6);
+});
+
 test('throws error if image sizes do not match', () => {
     assert.throws(() => match(new Uint8Array(8), new Uint8Array(9), null, 2, 1), 'Image sizes do not match');
 });
