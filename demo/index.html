@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Image Comparison Tool</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>Image Comparison Tool</h1>
+                <p class="subtitle">
+                    Using
+                    <a href="https://github.com/mapbox/pixelmatch" target="_blank">pixelmatch</a> to
+                    compare images.
+                </p>
+            </header>
+
+            <div class="images-container">
+                <div class="image-display" id="display1" data-image-type="image1">
+                    <input type="file" id="file1" accept="image/*" class="file-input" />
+                    <div class="no-image" onclick="document.getElementById('file1').click()">
+                        <div>
+                            <p class="placeholder-text">Drop First Image Here</p>
+                            <p class="help-text">Drag and drop or click to select</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="image-display" id="display2" data-image-type="image2">
+                    <input type="file" id="file2" accept="image/*" class="file-input" />
+                    <div class="no-image" onclick="document.getElementById('file2').click()">
+                        <div>
+                            <p class="placeholder-text">Drop Second Image Here</p>
+                            <p class="help-text">Drag and drop or click to select</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="image-display" id="diff-display">
+                    <div class="no-image">
+                        <div>
+                            <p class="placeholder-text">Diff Image</p>
+                            <p class="help-text">Run comparison to see differences</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="result" class="result" style="display: none"></div>
+
+            <div class="options-section">
+                <div class="options-header" onclick="ImageCompareApp.toggleOptions()">
+                    <h3>Comparison Options</h3>
+                    <span class="toggle-icon" id="toggle-icon">▼</span>
+                </div>
+                <div class="options-content collapsed" id="options-content">
+                    <div class="options-grid">
+                        <div class="option-group">
+                            <label for="maxDim">Max Dimension (px):</label>
+                            <input
+                                type="range"
+                                id="maxDim"
+                                min="64"
+                                max="512"
+                                step="32"
+                                value="128"
+                            />
+                            <span id="maxDim-value">128</span>
+                            <small>Higher = more accurate but slower</small>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="threshold">Threshold (0-1):</label>
+                            <input
+                                type="range"
+                                id="threshold"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value="0.3"
+                            />
+                            <span id="threshold-value">0.3</span>
+                            <small>Lower = more sensitive</small>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="includeAA">Include Anti-Aliasing:</label>
+                            <input type="checkbox" id="includeAA" />
+                            <small>Detect anti-aliased pixels</small>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="alpha">Alpha Blending (0-1):</label>
+                            <input type="range" id="alpha" min="0" max="1" step="0.1" value="0.1" />
+                            <span id="alpha-value">0.1</span>
+                            <small>0=white, 1=original</small>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="aaColor">Anti-Alias Color:</label>
+                            <input type="color" id="aaColor" value="#ffff00" />
+                            <small>Color for anti-aliased pixels</small>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="diffColor">Diff Color:</label>
+                            <input type="color" id="diffColor" value="#ff0000" />
+                            <small>Color for different pixels</small>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="diffColorAlt">Alt Diff Color:</label>
+                            <input type="color" id="diffColorAlt" value="#00ff00" />
+                            <small>Alternative diff color</small>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="diffMask">Diff Mask:</label>
+                            <input type="checkbox" id="diffMask" />
+                            <small>Transparent background</small>
+                        </div>
+                    </div>
+
+                    <div class="options-actions">
+                        <button id="reset-options" class="btn btn-secondary">Reset Options</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="module" src="app.js"></script>
+    </body>
+</html>

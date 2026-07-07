@@ -23,7 +23,11 @@ Implements ideas from the following papers:
 - [Distance metrics for very large color differences](https://onlinelibrary.wiley.com/doi/10.1002/col.22451) (2019, Saeideh Abasi et al.) — the OKLab HyAB metric used to compare colors.
 - [Anti-aliased pixel and intensity slope detector](https://www.researchgate.net/publication/234126755_Anti-aliased_Pixel_and_Intensity_Slope_Detector) (2009, Vytautas Vyšniauskas)
 
-## [Demo](https://observablehq.com/@mourner/pixelmatch-demo)
+## Demo
+
+[observablehq](https://observablehq.com/@mourner/pixelmatch-demo)
+
+[Github page](https://mapbox.github.io/pixelmatch/demo)
 
 ## Example output
 
@@ -112,7 +116,7 @@ Or use in the browser from a CDN:
 
 ```html
 <script type="module">
-	import pixelmatch from 'https://esm.run/pixelmatch';
+ import pixelmatch from 'https://esm.run/pixelmatch';
 ```
 
 ## [Changelog](https://github.com/mapbox/pixelmatch/releases)
