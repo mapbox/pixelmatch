@@ -528,9 +528,10 @@ function toe(L) {
  * (darkest/brightest neighbor), and switching to ΔL both regressed AA detection on dark regions
  * and was much slower (called up to 16× per candidate pixel).
  *
- * Semi-transparent pixels are composited over fixed mid-gray rather than the checkerboard
+ * Semi-transparent pixels are composited over fixed white rather than the checkerboard
  * used by `colorDelta`: a ramp structure test needs a deterministic background, and a
- * pseudo-random per-position one distorts the very ramps it looks for. When the composited
+ * pseudo-random per-position one distorts the very ramps it looks for. White (rather than
+ * mid-gray) matches the pre-checkerboard blending that some callers depend on. When the composited
  * luma delta cancels out exactly but alpha differs, the alpha delta gives the ramp direction,
  * so only pixels equal in both premultiplied luma and alpha count as equal siblings.
  * @param {Uint8Array | Uint8ClampedArray} img
@@ -554,9 +555,9 @@ function brightnessDelta(img, m, r1, g1, b1, a1) {
     if (!dr && !dg && !db && !da) return 0;
 
     if (a1 < 255 || a2 < 255) {
-        dr = (r1 * a1 - r2 * a2 - 128 * da) / 255;
-        dg = (g1 * a1 - g2 * a2 - 128 * da) / 255;
-        db = (b1 * a1 - b2 * a2 - 128 * da) / 255;
+        dr = (r1 * a1 - r2 * a2 - 255 * da) / 255;
+        dg = (g1 * a1 - g2 * a2 - 255 * da) / 255;
+        db = (b1 * a1 - b2 * a2 - 255 * da) / 255;
         const d = dr * 0.29889531 + dg * 0.58662247 + db * 0.11448223;
         return d === 0 && da ? da / 2 : d;
     }
