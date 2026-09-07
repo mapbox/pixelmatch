@@ -25,6 +25,16 @@ diffTest('6a', '6b', '6diff', options, 51);
 diffTest('6a', '6a', '6empty', {threshold: 0}, 0);
 diffTest('7a', '7b', '7diff', {diffColorAlt: [0, 255, 0]}, 2440);
 diffTest('8a', '5b', '8diff', options, 32896);
+// Test diff for parts not within an ignore mask
+diffTest('9a', '9b', '9diff', {
+    threshold: 0.05,
+    ignoreMask: true
+}, 12422);
+// Test fast path with a diff within an ignore mask
+diffTest('10a', '10b', '10diff', {
+    threshold: 0.05,
+    ignoreMask: true
+}, 0);
 
 test('OKLab metric uses Lr toe correction for near-black differences', () => {
     const pixel = gray => new Uint8Array([gray, gray, gray, 255]);
@@ -163,6 +173,18 @@ function diffTest(imgPath1, imgPath2, diffPath, options, expectedMismatch) {
         const img2 = readImage(imgPath2);
         const {width, height} = img1;
         const diff = new PNG({width, height});
+
+        if (options?.ignoreMask) {
+            const ignoreMask = new Uint8Array(width * height);
+            for (let index = 0; index < ignoreMask.length; index++) {
+                if (index > ignoreMask.length / 2) {
+                    ignoreMask[index] = 0;
+                } else {
+                    ignoreMask[index] = 1;
+                }
+            }
+            options.ignoreMask = ignoreMask;
+        }
 
         const mismatch = match(img1.data, img2.data, diff.data, width, height, options);
         const mismatch2 = match(img1.data, img2.data, null, width, height, options);
