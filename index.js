@@ -67,7 +67,7 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
     // default path allocation-free): 0 same/ignored, 1 diff, 2 excluded AA.
     // diff pixels are given odd values so the window scan can count them
     // branchlessly with `& 1`.
-    const mask = windowSize !== Infinity ? new Uint8Array(len) : null;
+    const mask = Number.isFinite(windowSize) ? new Uint8Array(len) : null;
     // first/last row containing a counted diff, to bound the windowed post-pass
     let firstDiffY = -1;
     let lastDiffY = 0;
@@ -115,9 +115,10 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
     // return the number of different pixels
     if (!mask) return diff;
 
-    // windowed mode: return the maximum number of diff pixels (state 1) over all
-    // N×N sliding windows, N clamped to the image dimensions
-    const n = Math.max(1, Math.min(windowSize | 0, width, height));
+    // windowed mode: return the maximum number of diff pixels (state 1) over all N×N
+    // sliding windows, N floored and clamped to [1, min(width, height)] before the integer
+    // conversion, so huge values saturate instead of wrapping
+    const n = Math.min(Math.max(Math.floor(windowSize) || 1, 1), width, height);
 
     // colSum[x] counts diff pixels in column x over the last n rows; maintained
     // incrementally (add entering row, subtract leaving row), which is why the
@@ -335,10 +336,14 @@ function linLUT(x) {
 const CBRT_N = 4096;
 const CBRT = new Float64Array(CBRT_N + 2);
 for (let i = 0; i <= CBRT_N + 1; i++) CBRT[i] = Math.cbrt(i / CBRT_N);
+const CBRT_EXACT = 8;
 /** @param {number} x */
 function cbrtLUT(x) {
     const t = x * CBRT_N;
     const i = t | 0;
+    // cbrt curves hardest right above zero, where linear interpolation between samples is off by
+    // up to 50%; that lands on near-black pixels, whose differences it then wildly over-weights
+    if (i < CBRT_EXACT) return Math.cbrt(x);
     return CBRT[i] + (CBRT[i + 1] - CBRT[i]) * (t - i);
 }
 
@@ -501,7 +506,7 @@ function oklabHyabDelta(dLr, dl, dm, ds, maxDelta) {
     // HyAB distance = |dLr| + sqrt(da^2 + db^2); compare against maxDelta without the sqrt:
     // it stays below the threshold iff |dLr| <= maxDelta and da^2 + db^2 <= (maxDelta - |dLr|)^2
     const rest = maxDelta - Math.abs(dLr);
-    if (rest > 0) {
+    if (rest >= 0) {
         const da = 1.9779984951 * dl - 2.4285922050 * dm + 0.4505937099 * ds;
         const db = 0.0259040371 * dl + 0.7827717662 * dm - 0.8086757660 * ds;
         if (da * da + db * db <= rest * rest) return 0;

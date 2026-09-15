@@ -8,9 +8,9 @@ import match from '../index.js';
 
 const options = {threshold: 0.05};
 
-diffTest('1a', '1b', '1diff', options, 154);
-diffTest('1a', '1b', '1diffdefaultthreshold', {threshold: undefined}, 120);
-diffTest('1a', '1b', '1diffmask', {threshold: 0.05, includeAA: false, diffMask: true}, 154);
+diffTest('1a', '1b', '1diff', options, 152);
+diffTest('1a', '1b', '1diffdefaultthreshold', {threshold: undefined}, 121);
+diffTest('1a', '1b', '1diffmask', {threshold: 0.05, includeAA: false, diffMask: true}, 152);
 diffTest('1a', '1a', '1emptydiffmask', {threshold: 0, diffMask: true}, 0);
 diffTest('2a', '2b', '2diff', {
     threshold: 0.05,
@@ -31,6 +31,20 @@ test('OKLab metric uses Lr toe correction for near-black differences', () => {
 
     assert.equal(match(pixel(0), pixel(13), null, 1, 1), 0);
     assert.equal(match(pixel(0), pixel(23), null, 1, 1), 1);
+});
+
+test('near-black differences are not over-weighted by cube-root interpolation', () => {
+    // A single code value away from pure black lands where cbrt curves hardest, so interpolating
+    // the cube-root table there overstated the distance enough to cross the threshold.
+    const black = new Uint8Array([0, 0, 0, 255]);
+    const pixel = (r, g, b) => new Uint8Array([r, g, b, 255]);
+
+    assert.equal(match(black, pixel(0, 1, 0), null, 1, 1, {threshold: 0.05}), 0);
+    assert.equal(match(black, pixel(1, 0, 0), null, 1, 1, {threshold: 0.05}), 0);
+    assert.equal(match(black, pixel(0, 0, 1), null, 1, 1, {threshold: 0.05}), 0);
+
+    // a genuinely visible step away from black must still register
+    assert.equal(match(black, pixel(32, 20, 20), null, 1, 1, {threshold: 0.05}), 1);
 });
 
 test('OKLab metric separates the #127 color pairs at the default threshold', () => {
@@ -90,6 +104,38 @@ test('windowSize on a real fixture (6a/6b, 256×256, 51 diff pixels)', () => {
     // smaller windows contain a subset of the diffs, but never more than the total
     assert.equal(match(img1.data, img2.data, null, width, height, {...opts, windowSize: 32}), 29);
     assert.equal(match(img1.data, img2.data, null, width, height, {...opts, windowSize: 8}), 6);
+});
+
+test('threshold: 0 treats identical pixels as equal', () => {
+    // exact equality must land below the threshold even when maxDelta is 0
+    const opaque = new Uint8Array([10, 20, 30, 255]);
+    assert.equal(match(opaque, opaque.slice(), null, 1, 1, {threshold: 0}), 0);
+    assert.equal(match(opaque, new Uint8Array([11, 20, 30, 255]), null, 1, 1, {threshold: 0}), 1);
+
+    // fully transparent pixels composite identically whatever their RGB
+    const clear1 = new Uint8Array([0, 0, 0, 0]);
+    const clear2 = new Uint8Array([255, 0, 0, 0]);
+    assert.equal(match(clear1, clear2, null, 1, 1, {threshold: 0}), 0);
+    assert.equal(match(clear1, clear2, null, 1, 1, {threshold: 0, checkerboard: false}), 0);
+});
+
+test('windowSize clamps out-of-range and non-integer values', () => {
+    const w = 4, h = 4;
+    const img1 = new Uint8Array(w * h * 4);
+    const img2 = new Uint8Array(w * h * 4).fill(255);
+    const opts = {includeAA: true};
+
+    // huge sizes saturate to the whole image rather than wrapping to a 1×1 window
+    assert.equal(match(img1, img2, null, w, h, {...opts, windowSize: 2147483648}), 16);
+    assert.equal(match(img1, img2, null, w, h, {...opts, windowSize: Number.MAX_SAFE_INTEGER}), 16);
+
+    // fractional sizes floor; zero, negative and NaN fall back to a 1×1 window
+    assert.equal(match(img1, img2, null, w, h, {...opts, windowSize: 2.9}), 4);
+    assert.equal(match(img1, img2, null, w, h, {...opts, windowSize: 0}), 1);
+    assert.equal(match(img1, img2, null, w, h, {...opts, windowSize: -5}), 1);
+
+    // NaN isn't finite, so it keeps the default whole-image total count
+    assert.equal(match(img1, img2, null, w, h, {...opts, windowSize: NaN}), 16);
 });
 
 test('throws error if image sizes do not match', () => {

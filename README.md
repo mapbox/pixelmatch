@@ -55,11 +55,25 @@ Implements ideas from the following papers:
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 
-### Windowed diff density
+### Windowed diff counts
 
-By default the return value is the total number of differing pixels. With `windowSize: N`, it instead becomes the largest number of diff pixels found in any `N`×`N` region (`N` is clamped to the image dimensions, and anti-aliased pixels are never counted).
+Normally the return value is the total number of differing pixels. With `windowSize: N` you get the
+highest number of diff pixels in any `N`×`N` square instead. Anti-aliased pixels are only included
+if `includeAA` is `true`.
 
-This makes the result robust to scattered noise. Spread-out speckle (GPU dithering, sub-pixel anti-aliasing) never packs densely into a single window, while a genuine regression does. A test can then fail on density — `result / N² > tau` — which stays comparable across image sizes, so you can run a stricter threshold to catch smaller real changes without tripping over noise. The total count is just the degenerate whole-image window, so the return value is always "max diff pixels in any window".
+This helps with noise. GPU dithering and sub-pixel anti-aliasing scatter stray pixels all over the
+image, so they never fill up one small square, while a real regression usually changes a compact
+area.
+
+Compare the result against a pixel count: that number is how big a difference you let through, and
+`N` is how closely packed it has to be.
+
+```js
+if (pixelmatch(img1, img2, null, width, height, {windowSize: 16}) > 28) throw new Error('changed');
+```
+
+`N` never exceeds either image dimension, so on a 10×2 image `windowSize: 32` gives you a 2×2
+window. The default `Infinity` makes the window the whole image, which is the total count.
 
 ## Command line
 
