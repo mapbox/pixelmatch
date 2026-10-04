@@ -17,6 +17,7 @@
  * @param {boolean} [options.diffMask=false] Draw the diff over a transparent background (a mask).
  * @param {boolean} [options.checkerboard=true] Whether to blend semi-transparent pixels against a checkerboard pattern (true) or plain white (false) when comparing.
  * @param {number} [options.windowSize=Infinity] If finite, return the maximum number of diff pixels found in any N×N sliding window instead of the total diff count.
+ * @param {Uint8Array | Uint8ClampedArray | void} [options.ignoreMask] Image data mask where any non-zero color value skips the corresponding img1 and img2 pixels being checked.
  *
  * @return {number} The number of mismatched pixels (or the maximum per-window count if windowSize is finite).
  */
@@ -28,7 +29,8 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
         diffColor = [255, 0, 0],
         checkerboard = true,
         windowSize = Infinity,
-        includeAA, diffColorAlt, diffMask
+        includeAA, diffColorAlt, diffMask,
+        ignoreMask
     } = options;
 
     if (!isPixelData(img1) || !isPixelData(img2) || (output && !isPixelData(output)))
@@ -39,14 +41,19 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
 
     if (img1.length !== width * height * 4) throw new Error(`Image data size does not match width/height. Expecting ${width * height * 4}. Got ${img1.length}`);
 
+    // check if ignored mask is identical
+    if (ignoreMask && ignoreMask.length !== width * height)
+        throw new Error(`Ignore mask size does not match image width/height. Expecting ${width * height}. Got ${ignoreMask.length}`);
+
     // check if images are identical
     const len = width * height;
     const a32 = new Uint32Array(img1.buffer, img1.byteOffset, len);
     const b32 = new Uint32Array(img2.buffer, img2.byteOffset, len);
+
     let identical = true;
 
     for (let i = 0; i < len; i++) {
-        if (a32[i] !== b32[i]) { identical = false; break; }
+        if (a32[i] !== b32[i] && (!ignoreMask || ignoreMask[i] <= 0)) { identical = false; break; }
     }
     if (identical) { // fast path if identical
         if (output && !diffMask) {
@@ -75,7 +82,7 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
     // compare each pixel of one image against the other one
     for (let i = 0, pos = 0; i < len; i++, pos += 4) {
         // whether the HyAB OKLab distance exceeds the threshold: 0 if not, ±1 if yes (negative if img2 pixel is darker)
-        const delta = a32[i] === b32[i] ? 0 : colorDelta(img1, img2, pos, pos, checkerboard, maxDelta);
+        const delta = (a32[i] === b32[i] || (ignoreMask && ignoreMask[i] > 0)) ? 0 : colorDelta(img1, img2, pos, pos, checkerboard, maxDelta);
 
         // the color difference is above the threshold
         if (delta) {
