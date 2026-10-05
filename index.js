@@ -419,7 +419,7 @@ function colorDeltaOpaque(r1, g1, b1, r2, g2, b2, maxDelta) {
         l1 = cbrtLUT(L_R[r1] + L_G[g1] + L_B[b1]);
         m1 = cbrtLUT(M_R[r1] + M_G[g1] + M_B[b1]);
         s1 = cbrtLUT(S_R[r1] + S_G[g1] + S_B[b1]);
-        lr1 = toe(0.2104542553 * l1 + 0.7936177850 * m1 - 0.0040720468 * s1);
+        lr1 = lightness(l1, m1, s1);
         OKLAB_CACHE_KEYS[slot1] = stored1;
         OKLAB_CACHE_VALUES[offset1] = l1;
         OKLAB_CACHE_VALUES[offset1 + 1] = m1;
@@ -441,7 +441,7 @@ function colorDeltaOpaque(r1, g1, b1, r2, g2, b2, maxDelta) {
         l2 = cbrtLUT(L_R[r2] + L_G[g2] + L_B[b2]);
         m2 = cbrtLUT(M_R[r2] + M_G[g2] + M_B[b2]);
         s2 = cbrtLUT(S_R[r2] + S_G[g2] + S_B[b2]);
-        lr2 = toe(0.2104542553 * l2 + 0.7936177850 * m2 - 0.0040720468 * s2);
+        lr2 = lightness(l2, m2, s2);
         OKLAB_CACHE_KEYS[slot2] = stored2;
         OKLAB_CACHE_VALUES[offset2] = l2;
         OKLAB_CACHE_VALUES[offset2 + 1] = m2;
@@ -493,8 +493,8 @@ function colorDeltaTransparent(r1, g1, b1, a1, r2, g2, b2, a2, k, checkerboard, 
     const l2 = cbrtLUT(0.4122214708 * lr2 + 0.5363325363 * lg2 + 0.0514459929 * lb2);
     const m2 = cbrtLUT(0.2119034982 * lr2 + 0.6806995451 * lg2 + 0.1073969566 * lb2);
     const s2 = cbrtLUT(0.0883024619 * lr2 + 0.2817188376 * lg2 + 0.6299787005 * lb2);
-    const Lr1 = toe(0.2104542553 * l1 + 0.7936177850 * m1 - 0.0040720468 * s1);
-    const Lr2 = toe(0.2104542553 * l2 + 0.7936177850 * m2 - 0.0040720468 * s2);
+    const Lr1 = lightness(l1, m1, s1);
+    const Lr2 = lightness(l2, m2, s2);
 
     return oklabHyabDelta(Lr1 - Lr2, l1 - l2, m1 - m2, s1 - s2, maxDelta);
 }
@@ -521,9 +521,13 @@ function oklabHyabDelta(dLr, dl, dm, ds, maxDelta) {
 }
 
 /**
- * @param {number} L
+ * Toe-corrected OKLab lightness (Lr) from cube-rooted LMS values.
+ * @param {number} l
+ * @param {number} m
+ * @param {number} s
  */
-function toe(L) {
+function lightness(l, m, s) {
+    const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
     const x = TOE_K3 * L - TOE_K1;
     return 0.5 * (x + Math.sqrt(x * x + 4 * TOE_K2 * TOE_K3 * L));
 }
