@@ -52,6 +52,7 @@ Implements ideas from the following papers:
 - `diffMask` — Draw the diff over a transparent background (a mask), rather than over the original image. Will not draw anti-aliased pixels (if detected).
 - `checkerboard` — Blend semi-transparent pixels against a checkerboard pattern when comparing (`true`) rather than plain white (`false`), avoiding false matches between colors that only look alike over one background. `true` by default.
 - `windowSize` — If set to a finite number `N`, return the maximum number of differing pixels in any `N`×`N` sliding window instead of the total count (see below). `Infinity` by default.
+- `ignoreMask` — A `Uint8Array` with one value per pixel (`width * height` long); pixels with a non-zero value are excluded from the comparison and drawn as unchanged in the diff output. Not set by default.
 
 Compares two images, writes the output diff and returns the number of mismatched pixels.
 
