@@ -469,9 +469,13 @@ function colorDeltaTransparent(r1, g1, b1, a1, r2, g2, b2, a2, k, checkerboard, 
     // blend pixels with background
     let rb = 255, gb = 255, bb = 255;
     if (checkerboard) {
-        rb = 48 + 159 * (k % 2);
-        gb = 48 + 159 * ((k / 1.618033988749895 | 0) % 2);
-        bb = 48 + 159 * ((k / 2.618033988749895 | 0) % 2);
+        // pick one of 8 dark/light background colors per pixel from the top 3 bits of a Fibonacci
+        // hash of its index (uniform and independent per channel), so that no pair of colors that
+        // only differ in alpha can look alike over more than 1/8 of the pixels
+        const h = Math.imul(k >> 2, 0x9e3779b1);
+        rb = 48 + 159 * (h >>> 31);
+        gb = 48 + 159 * ((h >>> 30) & 1);
+        bb = 48 + 159 * ((h >>> 29) & 1);
     }
     // blended channel values are fractional, so interpolate the sRGB->linear LUT
     r1 = (r1 * a1 + rb * (255 - a1)) / 255;
