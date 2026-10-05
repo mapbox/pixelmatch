@@ -163,6 +163,13 @@ test('throws error if provided wrong image data format', () => {
     assert.throws(() => match(bad, arr, null, 20, 20), err);
     assert.throws(() => match(arr, bad, null, 20, 20), err);
     assert.throws(() => match(arr, arr, bad, 20, 20), err);
+    assert.throws(() => match(arr, arr, null, 20, 20, {ignoreMask: new Array(20 * 20).fill(0)}), err);
+    assert.throws(() => match(arr, arr, null, 20, 20, {ignoreMask: new Float32Array(20 * 20)}), err);
+});
+
+test('throws error if ignore mask size does not match width and height', () => {
+    const arr = new Uint8Array(4 * 20 * 20);
+    assert.throws(() => match(arr, arr, null, 20, 20, {ignoreMask: new Uint8Array(20 * 20 * 4)}), 'Ignore mask size does not match');
 });
 
 function diffTest(imgPath1, imgPath2, diffPath, options, expectedMismatch) {

@@ -33,7 +33,8 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
         ignoreMask
     } = options;
 
-    if (!isPixelData(img1) || !isPixelData(img2) || (output && !isPixelData(output)))
+    if (!isPixelData(img1) || !isPixelData(img2) || (output && !isPixelData(output)) ||
+        (ignoreMask && !isPixelData(ignoreMask)))
         throw new Error('Image data: Uint8Array, Uint8ClampedArray or Buffer expected.');
 
     if (img1.length !== img2.length || (output && output.length !== img1.length))
