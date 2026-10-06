@@ -6,22 +6,19 @@
 A small, simple and fast JavaScript pixel-level **image comparison library**,
 originally created to compare screenshots in tests.
 
-Features accurate **anti-aliased pixels detection** and **perceptual color difference** metrics.
-Inspired by [Resemble.js](https://github.com/Huddle/Resemble.js)
-and [Blink-diff](https://github.com/yahoo/blink-diff).
-Unlike these libraries, pixelmatch is just **a few hundred lines of code**,
-has **no dependencies**, and works on **raw typed arrays** of image data,
-so it's **very fast** and can be used in both Node and browsers.
+Features accurate **anti-aliased pixel detection** and a **perceptual color difference** metric.
+It's just **a few hundred lines of code**, has **no dependencies**, and works on **raw typed arrays**
+of image data, so it's **very fast** and runs in both Node and browsers.
+There's also an official [C++ port](https://github.com/mapbox/pixelmatch-cpp).
 
 ```js
 const numDiffPixels = pixelmatch(img1, img2, diff, 800, 600, {threshold: 0.1});
 ```
 
-Implements ideas from the following papers:
-
-- [A perceptual color space for image processing](https://bottosson.github.io/posts/oklab/) (2020, Björn Ottosson) — the OKLab color space used for color difference.
-- [Distance metrics for very large color differences](https://onlinelibrary.wiley.com/doi/10.1002/col.22451) (2019, Saeideh Abasi et al.) — the OKLab HyAB metric used to compare colors.
-- [Anti-aliased pixel and intensity slope detector](https://www.researchgate.net/publication/234126755_Anti-aliased_Pixel_and_Intensity_Slope_Detector) (2009, Vytautas Vyšniauskas)
+Compares colors using the [OKLab color space](https://bottosson.github.io/posts/oklab/) (Björn Ottosson, 2020)
+and the [HyAB distance](https://onlinelibrary.wiley.com/doi/10.1002/col.22451) (Saeideh Abasi et al., 2019),
+and detects anti-aliasing with the [anti-aliased pixel and intensity slope detector](https://www.researchgate.net/publication/234126755_Anti-aliased_Pixel_and_Intensity_Slope_Detector)
+(Vytautas Vyšniauskas, 2009).
 
 ## [Demo](https://observablehq.com/@mourner/pixelmatch-demo)
 
@@ -29,17 +26,20 @@ Implements ideas from the following papers:
 
 | expected | actual | diff |
 | --- | --- | --- |
-| ![](test/fixtures/4a.png) | ![](test/fixtures/4b.png) | ![1diff](test/fixtures/4diff.png) |
-| ![](test/fixtures/3a.png) | ![](test/fixtures/3b.png) | ![1diff](test/fixtures/3diff.png) |
-| ![](test/fixtures/6a.png) | ![](test/fixtures/6b.png) | ![1diff](test/fixtures/6diff.png) |
+| ![](test/fixtures/4a.png) | ![](test/fixtures/4b.png) | ![](test/fixtures/4diff.png) |
+| ![](test/fixtures/3a.png) | ![](test/fixtures/3b.png) | ![](test/fixtures/3diff.png) |
+| ![](test/fixtures/6a.png) | ![](test/fixtures/6b.png) | ![](test/fixtures/6diff.png) |
 
 ## API
 
 ### pixelmatch(img1, img2, output, width, height[, options])
 
-- `img1`, `img2` — Image data of the images to compare (`Buffer`, `Uint8Array` or `Uint8ClampedArray`). **Note:** image dimensions must be equal.
-- `output` — Image data to write the diff to, or `null` if don't need a diff image.
-- `width`, `height` — Width and height of the images. Note that _all three images_ need to have the same dimensions.
+Compares two images, writes the output diff and returns the number of mismatched pixels (or the
+highest count in any window with `windowSize`).
+
+- `img1`, `img2` — Image data of the images to compare (`Buffer`, `Uint8Array` or `Uint8ClampedArray`).
+- `output` — Image data to write the diff to, or `null` if you don't need a diff image.
+- `width`, `height` — Width and height of the images. **Note:** _all three images_ need to have the same dimensions.
 
 `options` is an object literal with the following properties:
 
@@ -49,12 +49,10 @@ Implements ideas from the following papers:
 - `aaColor` — The color of anti-aliased pixels in the diff output in `[R, G, B]` format. `[255, 255, 0]` by default.
 - `diffColor` — The color of differing pixels in the diff output in `[R, G, B]` format. `[255, 0, 0]` by default.
 - `diffColorAlt` — An alternative color to use for dark on light differences to differentiate between "added" and "removed" parts. If not provided, all differing pixels use the color specified by `diffColor`. `null` by default.
-- `diffMask` — Draw the diff over a transparent background (a mask), rather than over the original image. Will not draw anti-aliased pixels (if detected).
+- `diffMask` — Draw the diff over a transparent background (a mask), rather than over the original image. Will not draw anti-aliased pixels (if detected). `false` by default.
 - `checkerboard` — Blend semi-transparent pixels against a checkerboard pattern when comparing (`true`) rather than plain white (`false`), avoiding false matches between colors that only look alike over one background. `true` by default.
 - `windowSize` — If set to a finite number `N`, return the maximum number of differing pixels in any `N`×`N` sliding window instead of the total count (see below). `Infinity` by default.
 - `ignoreMask` — A `Uint8Array`, `Uint8ClampedArray` or `Buffer` with one value per pixel (`width * height` long); pixels with a non-zero value are excluded from the comparison and drawn as unchanged in the diff output. Not set by default.
-
-Compares two images, writes the output diff and returns the number of mismatched pixels.
 
 ### Windowed diff counts
 
@@ -81,8 +79,11 @@ window. The default `Infinity` makes the window the whole image, which is the to
 Pixelmatch comes with a binary that works with PNG images:
 
 ```bash
-pixelmatch image1.png image2.png output.png 0.1
+pixelmatch image1.png image2.png [diff.png] [threshold] [includeAA]
 ```
+
+It prints the number of different pixels and exits with code `0` if the images match, `66` if they
+differ, `65` if their dimensions don't match, and `64` on wrong usage.
 
 ## Example usage
 
