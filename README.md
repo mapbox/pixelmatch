@@ -43,7 +43,7 @@ Implements ideas from the following papers:
 
 `options` is an object literal with the following properties:
 
-- `threshold` — Matching threshold, ranges from `0` to `1`. Smaller values make the comparison more sensitive. `0.1` by default.
+- `threshold` — How different two colors must be for a pixel to count as mismatched, from `0` to `1`. It's a per-pixel perceptual color difference, where `1` is the difference between black and white, not a share of the image; to allow some percentage of the image to differ, compare the returned count against `width * height` instead. Smaller values make the comparison more sensitive. `0.1` by default.
 - `includeAA` — If `true`, disables detecting and ignoring anti-aliased pixels. `false` by default.
 - `alpha` — Blending factor of unchanged pixels in the diff output. Ranges from `0` for pure white to `1` for original brightness. `0.1` by default.
 - `aaColor` — The color of anti-aliased pixels in the diff output in `[R, G, B]` format. `[255, 255, 0]` by default.
