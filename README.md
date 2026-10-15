@@ -20,7 +20,11 @@ and the [HyAB distance](https://onlinelibrary.wiley.com/doi/10.1002/col.22451) (
 and detects anti-aliasing with the [anti-aliased pixel and intensity slope detector](https://www.researchgate.net/publication/234126755_Anti-aliased_Pixel_and_Intensity_Slope_Detector)
 (Vytautas Vyšniauskas, 2009).
 
-## [Demo](https://observablehq.com/@mourner/pixelmatch-demo)
+## Demo
+
+[observablehq](https://observablehq.com/@mourner/pixelmatch-demo)
+
+[Github page](https://mapbox.github.io/pixelmatch/demo)
 
 ## Example output
 
@@ -128,7 +132,7 @@ Or use in the browser from a CDN:
 
 ```html
 <script type="module">
-	import pixelmatch from 'https://esm.run/pixelmatch';
+ import pixelmatch from 'https://esm.run/pixelmatch';
 ```
 
 ## [Changelog](https://github.com/mapbox/pixelmatch/releases)
