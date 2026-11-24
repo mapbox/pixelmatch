@@ -1,3 +1,10 @@
+// bit offsets of the RGBA channels in a pixel read from a Uint32Array view (platform byte order)
+const LITTLE_ENDIAN = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1;
+const R_SHIFT = LITTLE_ENDIAN ? 0 : 24;
+const G_SHIFT = LITTLE_ENDIAN ? 8 : 16;
+const B_SHIFT = LITTLE_ENDIAN ? 16 : 8;
+const A_SHIFT = LITTLE_ENDIAN ? 24 : 0;
+
 /**
  * Compare two equally sized images, pixel by pixel.
  *
@@ -87,7 +94,7 @@ export default function pixelmatch(img1, img2, output, width, height, options = 
             const x = i % width;
             const y = (i / width) | 0;
             // check it's a real rendering difference or just anti-aliasing
-            const isExcludedAA = !includeAA && (antialiased(img1, x, y, width, height, a32, b32) || antialiased(img2, x, y, width, height, b32, a32));
+            const isExcludedAA = !includeAA && (antialiased(x, y, width, height, a32, b32) || antialiased(x, y, width, height, b32, a32));
             if (isExcludedAA) {
                 // one of the pixels is anti-aliasing; draw as yellow and do not count as difference
                 // note that we do not include such pixels in a mask
@@ -188,7 +195,6 @@ function isPixelData(arr) {
 /**
  * Check if a pixel is likely a part of anti-aliasing;
  * based on "Anti-aliased Pixel and Intensity Slope Detector" paper by V. Vysniauskas, 2009
- * @param {Uint8Array | Uint8ClampedArray} img
  * @param {number} x1
  * @param {number} y1
  * @param {number} width
@@ -196,17 +202,17 @@ function isPixelData(arr) {
  * @param {Uint32Array} a32
  * @param {Uint32Array} b32
  */
-function antialiased(img, x1, y1, width, height, a32, b32) {
+function antialiased(x1, y1, width, height, a32, b32) {
     const x0 = x1 > 0 ? x1 - 1 : 0;
     const y0 = y1 > 0 ? y1 - 1 : 0;
     const x2 = x1 < width - 1 ? x1 + 1 : width - 1;
     const y2 = y1 < height - 1 ? y1 + 1 : height - 1;
-    const pos4 = (y1 * width + x1) * 4;
     // cache the center pixel's RGBA once instead of re-reading it on every neighbor comparison
-    const cr = img[pos4];
-    const cg = img[pos4 + 1];
-    const cb = img[pos4 + 2];
-    const ca = img[pos4 + 3];
+    const c = a32[y1 * width + x1];
+    const cr = (c >>> R_SHIFT) & 255;
+    const cg = (c >>> G_SHIFT) & 255;
+    const cb = (c >>> B_SHIFT) & 255;
+    const ca = (c >>> A_SHIFT) & 255;
     let zeroes = x1 === x0 || x1 === x2 || y1 === y0 || y1 === y2 ? 1 : 0;
     let min = 0;
     let max = 0;
@@ -216,14 +222,13 @@ function antialiased(img, x1, y1, width, height, a32, b32) {
     let maxY = 0;
 
     // go through 8 adjacent pixels
-    const rowStep = width * 4;
     for (let x = x0; x <= x2; x++) {
-        let m = (y0 * width + x) * 4;
-        for (let y = y0; y <= y2; y++, m += rowStep) {
+        let m = y0 * width + x;
+        for (let y = y0; y <= y2; y++, m += width) {
             if (x === x1 && y === y1) continue;
 
             // brightness delta between the center pixel and adjacent one
-            const delta = brightnessDelta(img, m, cr, cg, cb, ca);
+            const delta = brightnessDelta(a32[m], cr, cg, cb, ca);
 
             // count the number of equal, darker and brighter adjacent pixels
             if (delta === 0) {
@@ -548,18 +553,17 @@ function lightness(l, m, s) {
  * mid-gray) matches the pre-checkerboard blending that some callers depend on. When the composited
  * luma delta cancels out exactly but alpha differs, the alpha delta gives the ramp direction,
  * so only pixels equal in both premultiplied luma and alpha count as equal siblings.
- * @param {Uint8Array | Uint8ClampedArray} img
- * @param {number} m neighbor pixel offset
+ * @param {number} px neighbor pixel as a 32-bit RGBA value
  * @param {number} r1
  * @param {number} g1
  * @param {number} b1
  * @param {number} a1
  */
-function brightnessDelta(img, m, r1, g1, b1, a1) {
-    const r2 = img[m];
-    const g2 = img[m + 1];
-    const b2 = img[m + 2];
-    const a2 = img[m + 3];
+function brightnessDelta(px, r1, g1, b1, a1) {
+    const r2 = (px >>> R_SHIFT) & 255;
+    const g2 = (px >>> G_SHIFT) & 255;
+    const b2 = (px >>> B_SHIFT) & 255;
+    const a2 = (px >>> A_SHIFT) & 255;
 
     let dr = r1 - r2;
     let dg = g1 - g2;
